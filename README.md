@@ -7,9 +7,14 @@ rendered in the browser (so every table, figure, and math expression is preserve
 - **1,410 questions** across SAT Math and Reading & Writing
 - Filter by category → topic → difficulty, choose length, shuffle, and timer mode
 - Multiple-choice **and** student-produced (grid-in) answers, auto-graded
-- Per-question + total timers with an optional **exam-pace** indicator
-  (Math ≈ 95 s/question, R&W ≈ 71 s/question)
+- Per-question + total timers with a detailed **exam-pace** indicator that shows the
+  expected good/slow time range per question (tuned by test + difficulty) and colors the
+  clock green / amber / red
+- Back-navigation through a session (revisit and review earlier questions)
+- "Exclude seen" / "unseen first" modes, with a per-category count of what's being excluded
 - Full worked-solution explanation revealed after each answer
+- **History & analytics page**: activity trend (last 14 days), weakest topics, accuracy by
+  topic, and a summary of every past session with one-tap review of what you missed
 - Tracks your score, accuracy by topic/difficulty, flagged questions, and lifetime progress
   (saved in your browser)
 - Light & dark themes
@@ -29,7 +34,8 @@ Git for Windows.)
 | Key | Action |
 |-----|--------|
 | `1`–`4` or `A`–`D` | choose an answer |
-| `Enter` | submit / next |
+| `Enter` or `→` | submit / next |
+| `←` or `B` | back to previous question |
 | `F` | flag question for review |
 | `S` | skip |
 | `P` | pause/resume |

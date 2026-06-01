@@ -70,9 +70,13 @@
                 <option value="off">Off</option>
               </select>
             </label>
-            <label class="opt opt-check">
-              <input type="checkbox" id="opt-unseen" />
-              <span>Prioritize unseen questions</span>
+            <label class="opt">
+              <span>Seen questions</span>
+              <select id="opt-seen">
+                <option value="all" selected>Include all</option>
+                <option value="unseen">Show unseen first</option>
+                <option value="exclude">Exclude seen</option>
+              </select>
             </label>
           </div>
         </div>
@@ -86,8 +90,10 @@
         </div>
         <div class="card start-card">
           <div class="match-count"><span id="match-num">0</span> questions match</div>
+          <div id="excluded-note" class="excluded-note hidden"></div>
           <button id="btn-start" class="primary big">Start practice →</button>
           <button id="btn-review-flagged" class="ghost">Review flagged (<span id="flag-num">0</span>)</button>
+          <button id="btn-history" class="ghost">📈 View history</button>
         </div>
         <p class="hint">Tip: use keys <kbd>1</kbd>–<kbd>4</kbd> or <kbd>A</kbd>–<kbd>D</kbd> to answer, <kbd>Enter</kbd> to continue, <kbd>F</kbd> to flag.</p>
       </aside>
@@ -116,6 +122,7 @@
           <span id="tag-test" class="tag"></span>
           <span id="tag-topic" class="tag tag-topic"></span>
           <span id="tag-diff" class="tag"></span>
+          <span id="pace-pill" class="pace-pill hidden" title="Pacing target for this question"></span>
           <button id="btn-flag" class="flag-btn" title="Flag for review (F)">⚑ Flag</button>
         </div>
         <div id="q-render" class="pdf-render"><div class="loader">Loading…</div></div>
@@ -130,6 +137,7 @@
           <div id="a-render" class="pdf-render answer-render"><div class="loader">Loading…</div></div>
         </div>
         <div class="action-row">
+          <button id="btn-back" class="ghost hidden">← Back</button>
           <button id="btn-submit" class="primary" disabled>Submit</button>
           <button id="btn-next" class="primary hidden">Next →</button>
           <button id="btn-skip" class="ghost">Skip</button>
@@ -166,6 +174,35 @@
       <div class="summary-actions">
         <button id="btn-again" class="primary">New session</button>
         <button id="btn-retry-wrong" class="ghost">Retry incorrect</button>
+        <button id="btn-sum-history" class="ghost">📈 History</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HISTORY ================= -->
+  <section id="screen-history" class="screen">
+    <header class="topbar">
+      <button id="btn-hist-back" class="ghost small">← Home</button>
+      <div class="brand"><span class="logo">▦</span> History &amp; analytics</div>
+      <button id="btn-hist-clear" class="link-btn danger">Clear history</button>
+    </header>
+    <div class="summary-wrap">
+      <div class="big-stats" id="hist-overview"></div>
+      <div class="card">
+        <h2>Activity — last 14 days</h2>
+        <div id="hist-activity" class="activity"></div>
+      </div>
+      <div class="card">
+        <h2>Weakest topics</h2>
+        <div id="hist-weak" class="bars"></div>
+      </div>
+      <div class="card">
+        <h2>Accuracy by topic</h2>
+        <div id="hist-topic-acc" class="bars"></div>
+      </div>
+      <div class="card">
+        <h2>Past sessions</h2>
+        <div id="hist-sessions" class="sessions"></div>
       </div>
     </div>
   </section>
