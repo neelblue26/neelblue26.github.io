@@ -109,13 +109,29 @@ function renderDiffs(){
     box.appendChild(c);
   }
 }
+let topicSearch='';
+function renderOverall(){
+  let done=0; const total=QUESTIONS.length;
+  for(const q of QUESTIONS) if((store.byId[q.id]?.a||0)>0) done++;
+  const pct = total? Math.round(100*done/total):0;
+  $('#overall-meter').innerHTML =
+    `<div class="om-top"><span class="om-label">📚 Question bank completed</span>`+
+    `<span class="om-val">${done.toLocaleString()} / ${total.toLocaleString()} · ${pct}%</span></div>`+
+    `<div class="om-bar"><i style="width:${pct}%"></i></div>`;
+}
 function renderTopics(){
   const box=$('#f-topics'); box.innerHTML='';
+  const qstr=(topicSearch||'').trim().toLowerCase();
+  let shown=0;
   for(const t of CAT.testOrder){
     if(!sel.tests.has(t)) continue;
     const T=CAT.tax[t];
     for(const dom of T.domOrder){
       const D=T.doms[dom];
+      const domMatch = qstr && dom.toLowerCase().includes(qstr);
+      const topics = D.topOrder.filter(k=> !qstr || domMatch || k.toLowerCase().includes(qstr));
+      if(!topics.length) continue;
+      shown += topics.length;
       const allOn=D.topOrder.every(k=>sel.topics.has(k));
       let dDone=0,dTot=0; for(const k of D.topOrder){ const e=PROG.byTopic[k]; dDone+=e.done; dTot+=e.total; }
       const g=document.createElement('div'); g.className='tg';
@@ -123,7 +139,7 @@ function renderTopics(){
       title.innerHTML=`<span class="dom-dot"></span><span class="tg-name">${dom}</span>`+
         `<span class="tg-agg">${dDone}/${dTot}</span><span class="tg-toggle">${allOn?'clear':'all'}</span>`;
       const rows=document.createElement('div'); rows.className='tg-rows';
-      for(const k of D.topOrder){
+      for(const k of topics){
         const e=PROG.byTopic[k]; const a=accInfo(e);
         const pct = e.total? Math.round(100*e.done/e.total):0;
         const r=document.createElement('div');
@@ -138,6 +154,7 @@ function renderTopics(){
       g.appendChild(title); g.appendChild(rows); box.appendChild(g);
     }
   }
+  if(!shown) box.innerHTML='<div class="hint" style="padding:16px 6px">No topics match your search.</div>';
 }
 function matching(){
   return QUESTIONS.filter(q=> sel.tests.has(q.t) && sel.topics.has(q.k) && sel.diffs.has(q.df));
@@ -190,7 +207,8 @@ $('#f-topics').addEventListener('click',e=>{
   const k=it.dataset.topic; if(sel.topics.has(k)) sel.topics.delete(k); else sel.topics.add(k);
   renderTopics(); updateMatch();
 });
-function refreshHome(){ PROG=computeProgress(); renderTests(); renderDiffs(); renderTopics(); updateMatch(); renderHomeStats(); }
+$('#topic-search').addEventListener('input', e=>{ topicSearch=e.target.value; renderTopics(); });
+function refreshHome(){ PROG=computeProgress(); renderOverall(); renderTests(); renderDiffs(); renderTopics(); updateMatch(); renderHomeStats(); }
 $$('[data-topics]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.topics==='all'){ for(const q of QUESTIONS) if(sel.tests.has(q.t)) sel.topics.add(q.k); }
   else { sel.topics.clear(); }

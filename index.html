@@ -22,6 +22,8 @@
         <h1>Build a practice set</h1>
         <p class="sub">Filter the question bank by category, topic and difficulty, then practice against the clock.</p>
 
+        <div id="overall-meter" class="overall-meter"></div>
+
         <div class="card">
           <h2>1 · Category</h2>
           <div id="f-test" class="chips"></div>
@@ -35,6 +37,7 @@
               <button class="link-btn" data-topics="none">Clear</button>
             </div>
           </div>
+          <input id="topic-search" class="topic-search" type="text" placeholder="Search topics…" autocomplete="off" spellcheck="false" />
           <div class="topic-cols"><span></span><span>Topic</span><span>Progress</span><span class="ta-r">Accuracy</span></div>
           <div id="f-topics" class="topic-groups"></div>
         </div>
