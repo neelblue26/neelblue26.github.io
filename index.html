@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SAT Practice — Question Bank</title>
+<link rel="stylesheet" href="styles.css" />
+<script>window.__PDF = {};</script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ================= HOME / SETUP ================= -->
+  <section id="screen-home" class="screen active">
+    <header class="topbar">
+      <div class="brand"><span class="logo">▦</span> SAT Practice</div>
+      <button id="btn-theme" class="icon-btn" title="Toggle theme">◐</button>
+    </header>
+
+    <div class="home-wrap">
+      <div class="home-main">
+        <h1>Build a practice set</h1>
+        <p class="sub">Filter the question bank by category, topic and difficulty, then practice against the clock.</p>
+
+        <div class="card">
+          <h2>1 · Category</h2>
+          <div id="f-test" class="chips"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>2 · Topics</h2>
+            <div class="card-actions">
+              <button class="link-btn" data-topics="all">Select all</button>
+              <button class="link-btn" data-topics="none">Clear</button>
+            </div>
+          </div>
+          <div id="f-topics" class="topic-groups"></div>
+        </div>
+
+        <div class="card">
+          <h2>3 · Difficulty</h2>
+          <div id="f-diff" class="chips"></div>
+        </div>
+
+        <div class="card">
+          <h2>4 · Options</h2>
+          <div class="opt-grid">
+            <label class="opt">
+              <span>Number of questions</span>
+              <select id="opt-count">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="40">40</option>
+                <option value="0">All matching</option>
+              </select>
+            </label>
+            <label class="opt">
+              <span>Order</span>
+              <select id="opt-order">
+                <option value="shuffle" selected>Shuffle</option>
+                <option value="ordered">In order</option>
+              </select>
+            </label>
+            <label class="opt">
+              <span>Timer</span>
+              <select id="opt-timer">
+                <option value="pace" selected>Exam pace</option>
+                <option value="up">Count up</option>
+                <option value="off">Off</option>
+              </select>
+            </label>
+            <label class="opt opt-check">
+              <input type="checkbox" id="opt-unseen" />
+              <span>Prioritize unseen questions</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <aside class="home-side">
+        <div class="card summary-card">
+          <h2>Your progress</h2>
+          <div id="home-stats" class="stats-mini"></div>
+          <button id="btn-reset-stats" class="link-btn danger">Reset progress</button>
+        </div>
+        <div class="card start-card">
+          <div class="match-count"><span id="match-num">0</span> questions match</div>
+          <button id="btn-start" class="primary big">Start practice →</button>
+          <button id="btn-review-flagged" class="ghost">Review flagged (<span id="flag-num">0</span>)</button>
+        </div>
+        <p class="hint">Tip: use keys <kbd>1</kbd>–<kbd>4</kbd> or <kbd>A</kbd>–<kbd>D</kbd> to answer, <kbd>Enter</kbd> to continue, <kbd>F</kbd> to flag.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= PRACTICE ================= -->
+  <section id="screen-quiz" class="screen">
+    <header class="topbar quiz-bar">
+      <button id="btn-quit" class="ghost small">← Exit</button>
+      <div class="progress-wrap">
+        <div class="progress-line"><div id="progress-fill"></div></div>
+        <div class="progress-text"><span id="q-index">1</span> / <span id="q-total">20</span></div>
+      </div>
+      <div class="quiz-meta">
+        <div class="score-pill">✓ <span id="score-correct">0</span> · ✗ <span id="score-wrong">0</span></div>
+        <div id="timer-q" class="timer" title="Time on this question">0:00</div>
+        <div id="timer-total" class="timer subtle" title="Total time">0:00</div>
+        <button id="btn-pause" class="icon-btn" title="Pause">⏸</button>
+      </div>
+    </header>
+
+    <div class="quiz-body">
+      <div class="q-col">
+        <div class="q-tags">
+          <span id="tag-test" class="tag"></span>
+          <span id="tag-topic" class="tag tag-topic"></span>
+          <span id="tag-diff" class="tag"></span>
+          <button id="btn-flag" class="flag-btn" title="Flag for review (F)">⚑ Flag</button>
+        </div>
+        <div id="q-render" class="pdf-render"><div class="loader">Loading…</div></div>
+      </div>
+
+      <div class="a-col">
+        <div id="answer-area"></div>
+        <div id="reveal-area" class="reveal hidden">
+          <div id="reveal-banner" class="banner"></div>
+          <div class="reveal-answer">Correct answer: <strong id="reveal-correct"></strong></div>
+          <h3 class="rationale-h">Explanation</h3>
+          <div id="a-render" class="pdf-render answer-render"><div class="loader">Loading…</div></div>
+        </div>
+        <div class="action-row">
+          <button id="btn-submit" class="primary" disabled>Submit</button>
+          <button id="btn-next" class="primary hidden">Next →</button>
+          <button id="btn-skip" class="ghost">Skip</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pause-overlay" class="overlay hidden">
+      <div class="overlay-card">
+        <h2>Paused</h2>
+        <p>The timer is stopped.</p>
+        <button id="btn-resume" class="primary">Resume</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SUMMARY ================= -->
+  <section id="screen-summary" class="screen">
+    <header class="topbar"><div class="brand"><span class="logo">▦</span> Session complete</div></header>
+    <div class="summary-wrap">
+      <div class="big-stats" id="big-stats"></div>
+      <div class="card">
+        <h2>By difficulty</h2>
+        <div id="sum-diff" class="bars"></div>
+      </div>
+      <div class="card">
+        <h2>By topic</h2>
+        <div id="sum-topic" class="bars"></div>
+      </div>
+      <div class="card">
+        <h2>Review questions</h2>
+        <div id="sum-list" class="review-list"></div>
+      </div>
+      <div class="summary-actions">
+        <button id="btn-again" class="primary">New session</button>
+        <button id="btn-retry-wrong" class="ghost">Retry incorrect</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- review single-question modal -->
+<div id="review-modal" class="overlay hidden">
+  <div class="overlay-card wide">
+    <button id="review-close" class="icon-btn close">✕</button>
+    <div id="review-content"></div>
+  </div>
+</div>
+
+<script src="vendor/pdf.min.js"></script>
+<script src="vendor/pdf.worker.b64.js"></script>
+<script src="data/questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
