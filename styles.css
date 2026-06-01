@@ -211,8 +211,11 @@ button.ghost.small{padding:7px 13px;font-size:13px}
 .banner.ok{background:var(--green-bg);color:var(--green)}
 .banner.no{background:var(--red-bg);color:var(--red)}
 .banner.neutral{background:var(--surface-2);color:var(--ink-soft)}
-.reveal-answer{font-size:14px;margin-bottom:14px}
+.reveal-answer{font-size:14px;margin-bottom:8px}
 .reveal-answer strong{font-size:16px}
+.reveal-hint{font-size:12.5px;color:var(--ink-soft);margin:0}
+#expl-wrap{margin-top:6px}
+#expl-wrap .rationale-h{margin:0 0 10px}
 .rationale-h{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:0 0 10px}
 .answer-render{max-height:none}
 

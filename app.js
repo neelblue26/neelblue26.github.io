@@ -263,7 +263,7 @@ async function renderRange(container, kind, slug, p0, p1){
   try{
     const doc=await getDoc(kind, slug);
     if(container._tok!==tok) return;
-    const dpr=Math.min(window.devicePixelRatio||1, 2.5);
+    const dpr=Math.min(window.devicePixelRatio||1, 2);
     const cw=Math.max(280,(container.clientWidth||720)-20);
     const frag=document.createDocumentFragment();
     for(let p=p0;p<=p1;p++){
@@ -271,18 +271,44 @@ async function renderRange(container, kind, slug, p0, p1){
       const page=await doc.getPage(p);
       if(container._tok!==tok) return;
       const base=page.getViewport({scale:1});
-      const scale=(cw/base.width)*dpr;
+      // render slightly oversampled so cropped/zoomed content stays crisp, but cap the canvas size
+      let scale=(cw/base.width)*dpr*1.25;
+      const MAXW=2000;
+      if(base.width*scale>MAXW) scale=MAXW/base.width;
       const vp=page.getViewport({scale});
       const canvas=document.createElement('canvas');
       canvas.width=Math.round(vp.width); canvas.height=Math.round(vp.height);
-      await page.render({canvasContext:canvas.getContext('2d',{alpha:false}), viewport:vp}).promise;
+      const ctx=canvas.getContext('2d',{alpha:false});
+      ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      await page.render({canvasContext:ctx, viewport:vp}).promise;
       if(container._tok!==tok) return;
-      frag.appendChild(canvas);
+      frag.appendChild(cropToContent(canvas, 14, dpr*1.35));
     }
     container.innerHTML=''; container.appendChild(frag);
   }catch(e){
     if(container._tok===tok) container.innerHTML='<div class="loader">Could not render this question.<br>'+(e.message||'')+'</div>';
   }
+}
+/* trim the blank margins of a rendered page so content fills the available width */
+function cropToContent(c, padCss, dpr){
+  const w=c.width,h=c.height; if(!w||!h) return c;
+  let data; try{ data=c.getContext('2d').getImageData(0,0,w,h).data; }catch(e){ return c; }
+  const step=Math.max(1,Math.round(2*dpr)), thr=248;
+  const rowHas=y=>{ const b=y*w*4; for(let x=0;x<w;x+=step){ const i=b+x*4; if(data[i]<thr||data[i+1]<thr||data[i+2]<thr) return true; } return false; };
+  const colHas=(x,y0,y1)=>{ for(let y=y0;y<=y1;y+=step){ const i=(y*w+x)*4; if(data[i]<thr||data[i+1]<thr||data[i+2]<thr) return true; } return false; };
+  let top=-1; for(let y=0;y<h;y++){ if(rowHas(y)){ top=y; break; } }
+  if(top<0) return c;
+  let bottom=h-1; for(let y=h-1;y>=0;y--){ if(rowHas(y)){ bottom=y; break; } }
+  let left=0; for(let x=0;x<w;x++){ if(colHas(x,top,bottom)){ left=x; break; } }
+  let right=w-1; for(let x=w-1;x>=0;x--){ if(colHas(x,top,bottom)){ right=x; break; } }
+  const pad=Math.round((padCss||12)*dpr);
+  top=Math.max(0,top-pad); left=Math.max(0,left-pad); bottom=Math.min(h-1,bottom+pad); right=Math.min(w-1,right+pad);
+  const cw2=right-left+1, ch2=bottom-top+1;
+  if(cw2>=w-2 && ch2>=h-2) return c;
+  const out=document.createElement('canvas'); out.width=cw2; out.height=ch2;
+  const octx=out.getContext('2d',{alpha:false}); octx.fillStyle='#fff'; octx.fillRect(0,0,cw2,ch2);
+  octx.drawImage(c, left,top,cw2,ch2, 0,0,cw2,ch2);
+  return out;
 }
 
 /* ============================================================
@@ -351,7 +377,7 @@ function loadQuestion(){
     pp.title=`Aim to finish under ${fmt(p.good)} (green). ${fmt(p.good)}–${fmt(p.slow)} is okay (amber). Over ${fmt(p.slow)} is slow (red).`;
   } else pp.classList.add('hidden');
 
-  renderRange($('#q-render'),'q',q.qs,q.qp[0],q.qp[1]);
+  if(!answered) renderRange($('#q-render'),'q',q.qs,q.qp[0],q.qp[1]);
   buildAnswerArea(q, answered?ans:null);
 
   // timing
@@ -361,7 +387,7 @@ function loadQuestion(){
 
   // reveal + buttons
   if(answered){ showReveal(q, ans.skipped?null:ans.correct); }
-  else { $('#reveal-area').classList.add('hidden'); $('#a-render').innerHTML='<div class="loader">Loading…</div>'; }
+  else { $('#reveal-area').classList.add('hidden'); $('#expl-wrap').classList.add('hidden'); $('#q-render').classList.remove('hidden'); }
 
   $('#btn-back').classList.toggle('hidden', state.i===0);
   $('#btn-next').textContent = (state.i===state.queue.length-1)? 'Finish ✓' : 'Next →';
@@ -501,6 +527,9 @@ function showReveal(q, correct){
   if(correct===null){ banner.className='banner neutral'; banner.textContent='Worked solution'; }
   else { banner.className='banner '+(correct?'ok':'no'); banner.textContent=correct?'Correct':'Incorrect'; }
   $('#reveal-correct').textContent=answerDisplay(q);
+  // replace the question (wide left area) with the full question + explanation page
+  $('#q-render').classList.add('hidden');
+  $('#expl-wrap').classList.remove('hidden');
   renderRange($('#a-render'),'a',q.as,q.ap[0],q.ap[1]);
 }
 
@@ -780,8 +809,8 @@ let _rsz;
 window.addEventListener('resize',()=>{ clearTimeout(_rsz); _rsz=setTimeout(()=>{
   if(!$('#screen-quiz').classList.contains('active')) return;
   const q=curQ(); if(!q) return;
-  renderRange($('#q-render'),'q',q.qs,q.qp[0],q.qp[1]);
-  if(!$('#reveal-area').classList.contains('hidden')) renderRange($('#a-render'),'a',q.as,q.ap[0],q.ap[1]);
+  if(state.committed) renderRange($('#a-render'),'a',q.as,q.ap[0],q.ap[1]);
+  else renderRange($('#q-render'),'q',q.qs,q.qp[0],q.qp[1]);
 }, 300); });
 
 /* ============================================================
