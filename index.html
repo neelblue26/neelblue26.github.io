@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SAT Practice — Question Bank</title>
-<link rel="stylesheet" href="styles.css?v=6" />
+<title>Blue's SAT Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=7" />
 <script>window.__PDF = {};</script>
 </head>
 <body>
@@ -13,7 +16,7 @@
   <!-- ================= HOME / SETUP ================= -->
   <section id="screen-home" class="screen active">
     <header class="topbar">
-      <div class="brand"><span class="logo">▦</span> SAT Practice</div>
+      <div class="brand"><span class="logo">B</span> <span class="brand-name">Blue's <em>SAT</em> Practice</span></div>
       <button id="btn-theme" class="icon-btn" title="Toggle theme">◐</button>
     </header>
 
@@ -99,9 +102,13 @@
           <button id="btn-review-flagged" class="ghost">Review flagged (<span id="flag-num">0</span>)</button>
           <button id="btn-history" class="ghost">📈 View history</button>
         </div>
-        <p class="hint">Tip: use keys <kbd>1</kbd>–<kbd>4</kbd> or <kbd>A</kbd>–<kbd>D</kbd> to answer, <kbd>Enter</kbd> to continue, <kbd>F</kbd> to flag.</p>
+        <p class="hint">Tip: use keys <kbd>1</kbd>–<kbd>4</kbd> or <kbd>A</kbd>–<kbd>D</kbd> to answer, <kbd>Enter</kbd> / <kbd>→</kbd> to continue, <kbd>←</kbd> back, <kbd>F</kbd> to flag.</p>
       </aside>
     </div>
+    <footer class="site-foot">
+      Practice questions are from the official College Board SAT® Suite question bank, for personal study.
+      SAT® is a trademark of the College Board, which is not affiliated with and does not endorse this site.
+    </footer>
   </section>
 
   <!-- ================= PRACTICE ================= -->
@@ -160,8 +167,12 @@
 
   <!-- ================= SUMMARY ================= -->
   <section id="screen-summary" class="screen">
-    <header class="topbar"><div class="brand"><span class="logo">▦</span> Session complete</div></header>
+    <header class="topbar">
+      <div class="brand"><span class="logo">B</span> <span class="brand-name">Blue's <em>SAT</em> Practice</span></div>
+      <button id="btn-theme" class="icon-btn" title="Toggle theme">◐</button>
+    </header>
     <div class="summary-wrap">
+      <h1 class="page-title">Session summary</h1>
       <div class="big-stats" id="big-stats"></div>
       <div class="card">
         <h2>By difficulty</h2>
@@ -187,10 +198,11 @@
   <section id="screen-history" class="screen">
     <header class="topbar">
       <button id="btn-hist-back" class="ghost small">← Home</button>
-      <div class="brand"><span class="logo">▦</span> History &amp; analytics</div>
+      <div class="brand"><span class="logo">B</span> <span class="brand-name">Blue's <em>SAT</em> Practice</span></div>
       <button id="btn-hist-clear" class="link-btn danger">Clear history</button>
     </header>
     <div class="summary-wrap">
+      <h1 class="page-title">History &amp; analytics</h1>
       <div class="big-stats" id="hist-overview"></div>
       <div class="card">
         <h2>Activity — last 14 days</h2>
@@ -224,6 +236,6 @@
 <script src="vendor/pdf.min.js"></script>
 <script src="vendor/pdf.worker.b64.js"></script>
 <script src="data/questions.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
