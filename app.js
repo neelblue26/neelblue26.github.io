@@ -60,6 +60,22 @@ const CAT = buildCatalog();
 const sel = { tests:new Set(CAT.testOrder), topics:new Set(), diffs:new Set(DIFF_ORDER) };
 for(const q of QUESTIONS) sel.topics.add(q.k);
 
+/* ---------- progress (done/total + accuracy) per topic, test, difficulty ---------- */
+let PROG = null;
+function computeProgress(){
+  const byTopic={}, byTest={}, byDiff={};
+  for(const q of QUESTIONS){
+    const b=store.byId[q.id]; const seen=b&&b.a>0;
+    for(const [map,key] of [[byTopic,q.k],[byTest,q.t],[byDiff,q.df]]){
+      const e=map[key]||(map[key]={total:0,done:0,a:0,c:0});
+      e.total++; if(seen){ e.done++; e.a+=b.a; e.c+=b.c; }
+    }
+  }
+  return {byTopic,byTest,byDiff};
+}
+function accInfo(e){ if(!e||!e.a) return null; const pct=Math.round(100*e.c/e.a); return {pct, col: pct>=70?'g':pct>=40?'a':'r'}; }
+function progFrac(e){ return e.done>0? `${e.done}/${e.total}` : `${e.total}`; }
+
 /* ---------- tiny DOM helpers ---------- */
 const $ = s=>document.querySelector(s);
 const $$ = s=>Array.from(document.querySelectorAll(s));
@@ -70,23 +86,26 @@ const rw = t=>t.replace('Reading and Writing','R&W');
 /* ============================================================
    HOME / SETUP
    ============================================================ */
+function chipDot(e){ const a=accInfo(e); return a?`<span class="chip-dot ${a.col}" title="${a.pct}% accuracy"></span>`:''; }
 function renderTests(){
   const box=$('#f-test'); box.innerHTML='';
   for(const t of CAT.testOrder){
+    const e=PROG.byTest[t];
     const c=document.createElement('div');
     c.className='chip'+(sel.tests.has(t)?' on':'');
     c.dataset.test=t;
-    c.innerHTML=`${t} <span class="c-count">${CAT.tax[t].count}</span>`;
+    c.innerHTML=`${t} <span class="c-count">${progFrac(e)}</span>${chipDot(e)}`;
     box.appendChild(c);
   }
 }
 function renderDiffs(){
   const box=$('#f-diff'); box.innerHTML='';
   for(const d of DIFF_ORDER){
+    const e=PROG.byDiff[d];
     const c=document.createElement('div');
     c.className=`chip diff-${d.toLowerCase()}`+(sel.diffs.has(d)?' on':'');
     c.dataset.diff=d;
-    c.innerHTML=`${d} <span class="c-count">${CAT.diffCount[d]||0}</span>`;
+    c.innerHTML=`${d} <span class="c-count">${progFrac(e)}</span>${chipDot(e)}`;
     box.appendChild(c);
   }
 }
@@ -98,18 +117,25 @@ function renderTopics(){
     for(const dom of T.domOrder){
       const D=T.doms[dom];
       const allOn=D.topOrder.every(k=>sel.topics.has(k));
+      let dDone=0,dTot=0; for(const k of D.topOrder){ const e=PROG.byTopic[k]; dDone+=e.done; dTot+=e.total; }
       const g=document.createElement('div'); g.className='tg';
       const title=document.createElement('div'); title.className='tg-title'; title.dataset.dom=dom;
-      title.innerHTML=`<span class="dom-dot"></span>${dom} <span class="tg-toggle">${allOn?'clear':'all'}</span>`;
-      const items=document.createElement('div'); items.className='tg-items';
+      title.innerHTML=`<span class="dom-dot"></span><span class="tg-name">${dom}</span>`+
+        `<span class="tg-agg">${dDone}/${dTot}</span><span class="tg-toggle">${allOn?'clear':'all'}</span>`;
+      const rows=document.createElement('div'); rows.className='tg-rows';
       for(const k of D.topOrder){
-        const it=document.createElement('div');
-        it.className='topic'+(sel.topics.has(k)?' on':'');
-        it.dataset.topic=k;
-        it.innerHTML=`${k} <span class="t-count">${D.tops[k]}</span>`;
-        items.appendChild(it);
+        const e=PROG.byTopic[k]; const a=accInfo(e);
+        const pct = e.total? Math.round(100*e.done/e.total):0;
+        const r=document.createElement('div');
+        r.className='topic-row'+(sel.topics.has(k)?' on':'');
+        r.dataset.topic=k;
+        r.innerHTML=`<span class="tr-check"></span>`+
+          `<span class="tr-name" title="${k}">${k}</span>`+
+          `<span class="tr-prog"><span class="tr-bar"><i style="width:${pct}%"></i></span><span class="tr-frac">${e.done}/${e.total}</span></span>`+
+          `<span class="tr-acc">${a?`<span class="dot ${a.col}"></span>${a.pct}%`:'<span class="tr-none">—</span>'}</span>`;
+        rows.appendChild(r);
       }
-      g.appendChild(title); g.appendChild(items); box.appendChild(g);
+      g.appendChild(title); g.appendChild(rows); box.appendChild(g);
     }
   }
 }
@@ -160,17 +186,18 @@ $('#f-topics').addEventListener('click',e=>{
     const D=T.doms[dom]; const allOn=D.topOrder.every(k=>sel.topics.has(k));
     D.topOrder.forEach(k=> allOn? sel.topics.delete(k) : sel.topics.add(k));
     renderTopics(); updateMatch(); return; }
-  const it=e.target.closest('.topic'); if(!it)return;
+  const it=e.target.closest('.topic-row'); if(!it)return;
   const k=it.dataset.topic; if(sel.topics.has(k)) sel.topics.delete(k); else sel.topics.add(k);
   renderTopics(); updateMatch();
 });
+function refreshHome(){ PROG=computeProgress(); renderTests(); renderDiffs(); renderTopics(); updateMatch(); renderHomeStats(); }
 $$('[data-topics]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.topics==='all'){ for(const q of QUESTIONS) if(sel.tests.has(q.t)) sel.topics.add(q.k); }
   else { sel.topics.clear(); }
   renderTopics(); updateMatch();
 }));
 $('#opt-seen').addEventListener('change', updateMatch);
-$('#btn-reset-stats').addEventListener('click',()=>{ if(confirm('Reset ALL saved progress, flags, and session history?')){ store={byId:{},flagged:[],sessions:[]}; saveStore(); renderHomeStats(); updateMatch(); }});
+$('#btn-reset-stats').addEventListener('click',()=>{ if(confirm('Reset ALL saved progress, flags, and session history?')){ store={byId:{},flagged:[],sessions:[]}; saveStore(); refreshHome(); }});
 $('#btn-theme').addEventListener('click',()=>{ document.body.classList.toggle('theme-dark');
   try{localStorage.setItem('sat_theme', document.body.classList.contains('theme-dark')?'d':'l');}catch(e){} });
 if((()=>{try{return localStorage.getItem('sat_theme')==='d'}catch(e){return false}})()) document.body.classList.add('theme-dark');
@@ -471,7 +498,7 @@ function advance(){
   state.i++; loadQuestion();
 }
 
-$('#btn-quit').addEventListener('click',()=>{ if(confirm('Exit this session? Answered questions are saved to your stats, but this won’t be recorded as a completed session.')){ stopTick(); show('#screen-home'); renderHomeStats(); updateMatch(); } });
+$('#btn-quit').addEventListener('click',()=>{ if(confirm('Exit this session? Answered questions are saved to your stats, but this won’t be recorded as a completed session.')){ stopTick(); show('#screen-home'); refreshHome(); } });
 $('#btn-flag').addEventListener('click',()=>{ const q=curQ(); toggleFlag(q.id);
   $('#btn-flag').classList.toggle('on', isFlagged(q.id)); $('#btn-flag').innerHTML=isFlagged(q.id)?'⚑ Flagged':'⚑ Flag'; });
 
@@ -562,12 +589,12 @@ function buildBars(box, rows, emptyMsg){
     box.appendChild(el);
   }
 }
-$('#btn-again').addEventListener('click',()=>{ show('#screen-home'); renderHomeStats(); updateMatch(); });
+$('#btn-again').addEventListener('click',()=>{ show('#screen-home'); refreshHome(); });
 $('#btn-sum-history').addEventListener('click',()=>{ renderHistory(); show('#screen-history'); });
 $('#btn-retry-wrong').addEventListener('click',()=>{
   const ids=new Set((lastSummary?lastSummary.items:[]).filter(x=>!x.correct).map(x=>x.id));
   const pool=QUESTIONS.filter(q=>ids.has(q.id));
-  if(pool.length) startSession(pool, {retry:true, label:'Retry incorrect'}); else { show('#screen-home'); renderHomeStats(); }
+  if(pool.length) startSession(pool, {retry:true, label:'Retry incorrect'}); else { show('#screen-home'); refreshHome(); }
 });
 
 /* ============================================================
@@ -678,7 +705,7 @@ function renderSessions(){
     card.appendChild(head); card.appendChild(body); box.appendChild(card);
   }
 }
-$('#btn-hist-back').addEventListener('click',()=>{ show('#screen-home'); renderHomeStats(); updateMatch(); });
+$('#btn-hist-back').addEventListener('click',()=>{ show('#screen-home'); refreshHome(); });
 $('#btn-hist-clear').addEventListener('click',()=>{ if(confirm('Clear all session history? (Topic stats and accuracy are kept.)')){ store.sessions=[]; saveStore(); renderHistory(); }});
 
 /* review modal */
@@ -744,6 +771,6 @@ window.addEventListener('resize',()=>{ clearTimeout(_rsz); _rsz=setTimeout(()=>{
    ============================================================ */
 function init(){
   if(!QUESTIONS.length){ document.body.innerHTML='<p style="padding:40px;font-family:sans-serif">No questions loaded. Make sure data/questions.js is present.</p>'; return; }
-  renderTests(); renderDiffs(); renderTopics(); updateMatch(); renderHomeStats();
+  refreshHome();
 }
 init();
