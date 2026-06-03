@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v13: table captions bold; renderOverall counts manualSeen
+   Blue's SAT Practice — v14: SVG width:100% max-width:72% for reliable scaling
    ============================================================ */
 
 /* ============================================================
@@ -324,8 +324,10 @@ figure.image, figure.table { display: block; }
 .stem svg, .stimulus svg, .rationale svg,
 .stem img, .stimulus img, .rationale img,
 figure svg, figure img {
-  max-width: 72%;   /* cap figures so they don't flood the full column */
-  width: auto;
+  /* width:100% fills the block; max-width:72% caps it — explicit & consistent across browsers.
+     width:auto on SVG is unreliable when viewBox is the only dimension hint. */
+  width: 100%;
+  max-width: 72%;
   height: auto;
   display: block;
   margin: 12px auto;
