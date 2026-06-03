@@ -85,10 +85,20 @@ function loadShard(pfx){
   return __shardP[pfx];
 }
 async function getContent(id){ await loadShard(id.slice(0,2)); return window.__Q[id]; }
+function sanitizeHTML(html){
+  if(!html) return '';
+  // CB encodes fill-in-the-blank as underscores followed by a sr-only "blank" span.
+  // Remove the sr-only span so the underline shows cleanly.
+  html = html.replace(/<span\s+class="sr-only"\s*>blank<\/span>/gi, '');
+  // Also catch raw _+blank text forms
+  html = html.replace(/_{3,}blank/g, '<span class="cb-blank"></span>');
+  html = html.replace(/<u>\s*blank\s*<\/u>/gi, '<span class="cb-blank"></span>');
+  return html;
+}
 function qHTML(c){
   let h='';
-  if(c.st && c.st.trim()) h+='<div class="stimulus">'+c.st+'</div>';
-  h+='<div class="stem">'+(c.q||'')+'</div>';
+  if(c.st && c.st.trim()) h+='<div class="stimulus">'+sanitizeHTML(c.st)+'</div>';
+  h+='<div class="stem">'+sanitizeHTML(c.q||'')+'</div>';
   return h;
 }
 
@@ -316,8 +326,25 @@ async function loadQuestion(){
     pp.title=`Aim to finish under ${fmt(p.good)} (green). ${fmt(p.good)}–${fmt(p.slow)} is okay (amber). Over ${fmt(p.slow)} is slow (red).`;
   } else pp.classList.add('hidden');
 
-  // render question
-  $('#q-render').innerHTML = c ? qHTML(c) : '<div class="loader">Question content unavailable.</div>';
+  // render question — CB layout: passage fills left panel, stem goes above choices on right
+  const stemEl = $('#q-stem');
+  if(c){
+    const hasStim = !!(c.st && c.st.trim());
+    if(hasStim){
+      $('#q-render').innerHTML = '<div class="stimulus">'+sanitizeHTML(c.st)+'</div>';
+      $('#q-render').classList.add('stimulus-panel');
+      stemEl.innerHTML = '<div class="stem">'+sanitizeHTML(c.q||'')+'</div>';
+      stemEl.classList.remove('hidden');
+    } else {
+      $('#q-render').innerHTML = '<div class="stem">'+sanitizeHTML(c.q||'')+'</div>';
+      $('#q-render').classList.remove('stimulus-panel');
+      stemEl.innerHTML = ''; stemEl.classList.add('hidden');
+    }
+  } else {
+    $('#q-render').innerHTML = '<div class="loader">Question content unavailable.</div>';
+    $('#q-render').classList.remove('stimulus-panel');
+    stemEl.innerHTML = ''; stemEl.classList.add('hidden');
+  }
   buildAnswerArea(q, answered?ans:null, c||{});
 
   // timing
@@ -445,7 +472,7 @@ function showReveal(q, correct){
   $('#reveal-correct').textContent=answerDisplay(q);
   // worked explanation under the (still-visible) question
   $('#expl-wrap').classList.remove('hidden');
-  $('#a-render').innerHTML='<div class="rationale">'+((state.content&&state.content.r)||'No explanation available.')+'</div>';
+  $('#a-render').innerHTML='<div class="rationale">'+sanitizeHTML((state.content&&state.content.r)||'No explanation available.')+'</div>';
 }
 
 $('#btn-skip').addEventListener('click',()=>{
