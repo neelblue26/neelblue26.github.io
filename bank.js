@@ -106,9 +106,10 @@ function sanitizeHTML(html){
   // Legacy patterns (older CB format)
   html = html.replace(/_{3,}blank/g, '<span class="cb-blank"></span>');
   html = html.replace(/<u>\s*blank\s*<\/u>/gi, '<span class="cb-blank"></span>');
-  // SVG figures: strip hardcoded pt dimensions so CSS max-width: 100% controls scaling
-  html = html.replace(/(<svg[^>]*?)\s+width="[\d.]+pt"/gi, '$1');
-  html = html.replace(/(<svg[^>]*?)\s+height="[\d.]+pt"/gi, '$1');
+  // SVG figures: strip ALL hardcoded dimensions (pt OR bare px values like width="400")
+  // so CSS max-width + height:auto fully controls scaling via viewBox aspect ratio.
+  html = html.replace(/(<svg[^>]*?)\s+width="[\d.]+(?:pt|px|em|rem)?"/gi, '$1');
+  html = html.replace(/(<svg[^>]*?)\s+height="[\d.]+(?:pt|px|em|rem)?"/gi, '$1');
   // Strip problematic CB inline style properties from ALL style="" attributes.
   // CB embeds color, font-family, font-size, etc. to match their own UI.
   // We keep structural properties (text-decoration, text-align, vertical-align,
