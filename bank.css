@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v16: fix topbar ghost width; progress bar visible
+   Blue's SAT Practice — v17: paired passage labels; final polish
    ============================================================ */
 
 /* ============================================================
@@ -119,6 +119,21 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-thickness: 1.5px;
+}
+
+/* ============================================================
+   PAIRED PASSAGE headings (Text 1 / Text 2)
+   CB wraps these in <span class="paired_passage"> inside a <p>.
+   Style as a small bold uppercase label to clearly separate the two texts.
+   ============================================================ */
+.stimulus .paired_passage {
+  display: block;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  padding-top: 6px;
 }
 
 /* ============================================================
