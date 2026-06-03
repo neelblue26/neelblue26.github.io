@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v15: poem, blockquote, copyright styling
+   Blue's SAT Practice — v16: fix topbar ghost width; progress bar visible
    ============================================================ */
 
 /* ============================================================
@@ -24,6 +24,17 @@
 .choice .ctxt a, .rationale a {
   color: var(--ink) !important;
   text-decoration: none;
+}
+
+/* ============================================================
+   TOPBAR — fix ghost button width in quiz bar
+   styles.css sets .ghost { width: 100% } for full-width card buttons.
+   In the flex topbar this causes .ghost buttons to claim 100% of bar width.
+   Override to auto so they size to their content.
+   ============================================================ */
+.topbar .ghost, .topbar.quiz-bar .ghost {
+  width: auto;
+  flex-shrink: 0;
 }
 
 /* ============================================================
