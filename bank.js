@@ -156,7 +156,7 @@ function renderDiffs(){
 let topicSearch='';
 function renderOverall(){
   let done=0; const total=QUESTIONS.length;
-  for(const q of QUESTIONS) if((store.byId[q.id]?.a||0)>0) done++;
+  for(const q of QUESTIONS){ const b=store.byId[q.id]; if(b&&(b.a>0||b.manualSeen)) done++; }
   const pct = total? Math.round(100*done/total):0;
   $('#overall-meter').innerHTML =
     `<div class="om-top"><span class="om-label">📚 Question bank completed</span>`+

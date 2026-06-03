@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v12: fix blank, grid-in font, list styling, polish
+   Blue's SAT Practice — v13: table captions bold; renderOverall counts manualSeen
    ============================================================ */
 
 /* ============================================================
@@ -351,6 +351,16 @@ figure th, figure td {
 figure thead th {
   background: var(--surface-2);
   font-weight: 700;
+}
+/* Table captions — bold title above the table */
+.stem caption, .stimulus caption, .rationale caption,
+figure caption {
+  font-weight: 700;
+  font-size: 14px;
+  padding-bottom: 8px;
+  text-align: center;
+  caption-side: top;
+  color: var(--ink);
 }
 
 /* ============================================================
