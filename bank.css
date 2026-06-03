@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v9: Source Serif 4 everywhere (passage, stem, choices, rationale)
+   Blue's SAT Practice — v10: wider right column (520px); choice text gets ~420px
    ============================================================ */
 
 /* ============================================================
@@ -39,6 +39,10 @@
   border-top: 1px solid var(--line);
   gap: 0;              /* remove grid gap; columns use padding for breathing room */
   padding: 0;
+  /* Widen right panel: styles.css sets 1fr 430px, which leaves choices only ~336px.
+     520px gives ~420px of usable choice width after padding and crossout button. */
+  grid-template-columns: 1fr 520px;
+  max-width: 100%;
 }
 
 /* Passage column — right border acts as the panel divider */
@@ -279,7 +283,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  width: 34px;
   background: transparent;
   border: 1.5px solid var(--ink);   /* match choice border */
   border-radius: 6px;
