@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v17: paired passage labels; final polish
+   Blue's SAT Practice — v18: centered layout max-width 1140px
    ============================================================ */
 
 /* ============================================================
@@ -50,10 +50,12 @@
   border-top: 1px solid var(--line);
   gap: 0;              /* remove grid gap; columns use padding for breathing room */
   padding: 0;
-  /* Widen right panel: styles.css sets 1fr 430px, which leaves choices only ~336px.
-     520px gives ~420px of usable choice width after padding and crossout button. */
-  grid-template-columns: 1fr 520px;
-  max-width: 100%;
+  grid-template-columns: 1fr 480px;
+  /* Cap at 1140px and center — matches CB Bluebook's layout proportions.
+     Removes the "stretched across a 1536px monitor" feeling. */
+  max-width: 1140px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Passage column — right border acts as the panel divider */
