@@ -20,6 +20,14 @@
 }
 #a-render.pdf-render { background: var(--surface-2); }
 
+/* Math stem (no stimulus) — plain text, no box */
+#q-render.pdf-render:not(.stimulus-panel) {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  padding: 4px 8px;
+}
+
 /* When q-render holds a passage — flush, no border, fills the left panel */
 #q-render.pdf-render.stimulus-panel {
   padding: 0;
@@ -194,12 +202,18 @@ p[style*="center"] math { font-size: 1.12em; }
 /* ============================================================
    FIGURES / IMAGES / TABLES
    ============================================================ */
+/* CB wraps figures and tables in <figure> */
+figure { margin: 14px 0; }
+figure.image, figure.table { display: block; }
+
 .stem svg, .stimulus svg, .rationale svg,
-.stem img, .stimulus img, .rationale img {
+.stem img, .stimulus img, .rationale img,
+figure svg, figure img {
   max-width: 100%;
+  width: auto;
   height: auto;
   display: block;
-  margin: 14px auto;
+  margin: 0 auto;
 }
 
 .stem table, .stimulus table, .rationale table {

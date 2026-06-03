@@ -93,6 +93,9 @@ function sanitizeHTML(html){
   // Also catch raw _+blank text forms
   html = html.replace(/_{3,}blank/g, '<span class="cb-blank"></span>');
   html = html.replace(/<u>\s*blank\s*<\/u>/gi, '<span class="cb-blank"></span>');
+  // SVG figures: strip hardcoded pt dimensions so CSS max-width: 100% controls scaling
+  html = html.replace(/(<svg[^>]*?)\s+width="[\d.]+pt"/gi, '$1');
+  html = html.replace(/(<svg[^>]*?)\s+height="[\d.]+pt"/gi, '$1');
   return html;
 }
 function qHTML(c){
