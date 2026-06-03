@@ -98,10 +98,12 @@ function loadShard(pfx){
 async function getContent(id){ await loadShard(id.slice(0,2)); return window.__Q[id]; }
 function sanitizeHTML(html){
   if(!html) return '';
-  // CB encodes fill-in-the-blank as underscores followed by a sr-only "blank" span.
-  // Remove the sr-only span so the underline shows cleanly.
+  // CB encodes fill-in-the-blank as:
+  //   <span aria-hidden="true">______</span><span class="sr-only">blank</span>
+  // Convert the aria-hidden underscores span first, then clean up any leftover sr-only.
+  html = html.replace(/<span[^>]*aria-hidden="true"[^>]*>_{3,}<\/span>/gi, '<span class="cb-blank"></span>');
   html = html.replace(/<span\s+class="sr-only"\s*>blank<\/span>/gi, '');
-  // Also catch raw _+blank text forms
+  // Legacy patterns (older CB format)
   html = html.replace(/_{3,}blank/g, '<span class="cb-blank"></span>');
   html = html.replace(/<u>\s*blank\s*<\/u>/gi, '<span class="cb-blank"></span>');
   // SVG figures: strip hardcoded pt dimensions so CSS max-width: 100% controls scaling
