@@ -1,0 +1,67 @@
+/* ============================================================
+   Text / MathML question bank — layered on top of styles.css
+   (only the bits that differ from the PDF renderer)
+   ============================================================ */
+
+/* the question / answer boxes now hold HTML, not a canvas */
+#q-render.pdf-render, #a-render.pdf-render,
+#rev-q.pdf-render, #rev-a.pdf-render{
+  display:block; text-align:left;
+  padding:22px 24px; line-height:1.6; font-size:17px; color:var(--ink);
+  overflow-x:auto;
+}
+#a-render.pdf-render{ background:var(--surface-2); }
+
+/* generic question text */
+.stem{ font-size:17px; line-height:1.62; }
+.stem p, .stimulus p, .rationale p{ margin:0 0 12px; }
+.stem p:last-child, .stimulus p:last-child, .rationale p:last-child{ margin-bottom:0; }
+.stem ul, .stem ol, .stimulus ul, .rationale ul, .rationale ol{ margin:8px 0 12px; padding-left:22px; }
+
+/* R&W passage / stimulus block */
+.stimulus{
+  margin:0 0 18px; padding:14px 18px;
+  background:var(--surface-2); border-left:3px solid var(--brand);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  font-size:16.5px; line-height:1.66;
+}
+.stimulus u{ text-decoration-thickness:2px; text-underline-offset:2px; }
+.stem + .stimulus, .stimulus + .stem{ margin-top:6px; }
+
+/* math (native MathML) */
+math{ font-size:1.05em; }
+.choice .ctxt math{ font-size:1.0em; }
+p[style*="center"]{ text-align:center; }
+p[style*="center"] math{ font-size:1.12em; }
+
+/* figures: inline SVG / images stay inside the column */
+.stem svg, .stimulus svg, .rationale svg,
+.stem img, .stimulus img, .rationale img{
+  max-width:100%; height:auto; display:block; margin:14px auto;
+}
+
+/* tables */
+.stem table, .stimulus table, .rationale table{
+  border-collapse:collapse; margin:14px auto; font-size:15px; max-width:100%;
+}
+.stem th, .stem td, .stimulus th, .stimulus td, .rationale th, .rationale td{
+  border:1px solid var(--line); padding:6px 13px; text-align:center;
+}
+.stem thead th, .stimulus thead th, .rationale thead th{
+  background:var(--surface-2); font-weight:700;
+}
+
+/* multiple-choice options now carry rich HTML/Math content */
+.choice{ align-items:flex-start; padding-top:12px; padding-bottom:12px; }
+.choice .letter{ flex:0 0 auto; margin-top:1px; }
+.choice .ctxt{ flex:1 1 auto; line-height:1.5; padding-top:3px; text-align:left; }
+.choice .ctxt p{ margin:0; }
+.choice .ctxt svg, .choice .ctxt img{ max-width:100%; height:auto; }
+.choice .mark{ margin-top:3px; }
+
+/* explanation / rationale */
+.rationale{ font-size:16px; line-height:1.66; color:var(--ink); }
+.rationale strong{ color:var(--ink); }
+
+/* small loader (answer column) */
+.loader.sm{ padding:16px; font-size:13px; }
