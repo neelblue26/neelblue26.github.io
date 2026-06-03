@@ -96,13 +96,15 @@ function sanitizeHTML(html){
   // SVG figures: strip hardcoded pt dimensions so CSS max-width: 100% controls scaling
   html = html.replace(/(<svg[^>]*?)\s+width="[\d.]+pt"/gi, '$1');
   html = html.replace(/(<svg[^>]*?)\s+height="[\d.]+pt"/gi, '$1');
-  // CB inline text colors: passages, stems, choices and rationale all contain
-  // style="color: rgb(...)" on citation-highlight spans.  Strip the color
-  // declaration so content renders in our theme ink color (dark-mode safe).
-  // Negative lookbehind skips background-color, border-color, etc.
-  html = html.replace(/(?<![a-z-])color\s*:[^;"}]*(;)?/gi, '');
-  // Remove style attributes that are now empty or contain only whitespace/semicolons
-  html = html.replace(/\s+style="[;\s]*"/gi, '');
+  // Strip problematic CB inline style properties from ALL style="" attributes.
+  // CB embeds color, font-family, font-size, etc. to match their own UI.
+  // We keep structural properties (text-decoration, text-align, vertical-align,
+  // margin, padding, display) but remove anything that fights our theme.
+  const BAD_PROPS = /^\s*(color|font-family|font-size|font-weight|background(?:-color)?|line-height)\s*:/i;
+  html = html.replace(/\sstyle="([^"]*)"/gi, (_, s) => {
+    const kept = s.split(';').filter(p => p.trim() && !BAD_PROPS.test(p)).join(';').trim();
+    return kept ? ` style="${kept}"` : '';
+  });
   return html;
 }
 function qHTML(c){
