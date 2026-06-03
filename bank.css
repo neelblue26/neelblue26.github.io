@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v8: unify fonts (Inter everywhere); 15px choices; blue bar fix
+   Blue's SAT Practice — v9: Source Serif 4 everywhere (passage, stem, choices, rationale)
    ============================================================ */
 
 /* ============================================================
@@ -11,9 +11,9 @@
 .choice .ctxt [style*="color"], .rationale [style*="color"] {
   color: var(--ink) !important;
 }
-.stem [style*="font"], .q-stem-area [style*="font"],
+.stimulus [style*="font"], .stem [style*="font"], .q-stem-area [style*="font"],
 .choice .ctxt [style*="font"], .rationale [style*="font"] {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif !important;
   font-size: inherit !important;
   font-weight: inherit !important;
 }
@@ -93,9 +93,9 @@
   background: var(--surface);
   border: none;
   border-radius: var(--radius-sm);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 16px;
-  line-height: 1.75;
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size: 16.5px;
+  line-height: 1.80;
   color: var(--ink);
 }
 .stimulus p { margin: 0 0 14px; }
@@ -171,7 +171,7 @@
   padding: 0 2px 14px;
   margin-bottom: 14px;
   border-bottom: 1px solid var(--line);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   font-size: 16px;
   line-height: 1.62;
   color: var(--ink);
@@ -183,7 +183,7 @@
 /* ============================================================
    STEM (question text)
    ============================================================ */
-.stem { font-size: 16px; line-height: 1.62; }
+.stem { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.62; }
 .stem p, .stimulus p, .rationale p { margin: 0 0 12px; }
 .stem p:last-child, .stimulus p:last-child, .rationale p:last-child { margin-bottom: 0; }
 .stem ul, .stem ol,
@@ -216,7 +216,7 @@
   padding: 12px 14px;
   cursor: pointer;
   transition: background 0.1s, border-color 0.1s;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   font-size: 15px;
   line-height: 1.5;
   margin-bottom: 0;
@@ -246,10 +246,14 @@
   flex: 1 1 auto;
   padding-top: 3px;
   text-align: left;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   font-size: 15px;
   font-weight: 400;
   color: var(--ink);
+}
+/* Letter badge stays sans-serif — it's a UI element, not content */
+.choice .letter {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 .choice .ctxt p { margin: 0; }
 .choice .ctxt svg, .choice .ctxt img { max-width: 100%; height: auto; }
@@ -348,5 +352,5 @@ figure thead th {
 /* ============================================================
    EXPLANATION / RATIONALE
    ============================================================ */
-.rationale { font-size: 16px; line-height: 1.66; color: var(--ink); }
+.rationale { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.66; color: var(--ink); }
 .rationale strong { color: var(--ink); }
