@@ -3,11 +3,31 @@
    ============================================================ */
 
 /* ============================================================
+   CB INLINE STYLE OVERRIDES
+   CB HTML encodes citation highlights as inline color: styles on spans/p.
+   Override so passages render in plain ink (dark-mode safe) with
+   only underlines preserved as the citation indicator.
+   ============================================================ */
+.stimulus [style],
+.stimulus [style] * {
+  color: var(--ink) !important;
+}
+.stem [style],
+.stem [style] * {
+  color: var(--ink) !important;
+}
+/* But keep any text-decoration (underlines) the CB HTML sets */
+
+/* ============================================================
    QUIZ BODY — two-panel layout with vertical divider
    ============================================================ */
 .quiz-body {
   border-top: 1px solid var(--line);
 }
+
+/* Tighten a-col — individual elements carry their own margins;
+   styles.css gap:16px doubles with q-num-bar margin-bottom */
+.a-col { gap: 0; }
 
 /* ============================================================
    QUESTION RENDER (left panel)
@@ -200,6 +220,8 @@
   flex: 1 1 auto;
   padding-top: 3px;
   text-align: left;
+  font-weight: 400;   /* CB uses regular weight for choice text */
+  color: var(--ink);
 }
 .choice .ctxt p { margin: 0; }
 .choice .ctxt svg, .choice .ctxt img { max-width: 100%; height: auto; }
