@@ -3,20 +3,17 @@
    ============================================================ */
 
 /* ============================================================
-   CB INLINE STYLE OVERRIDES
-   CB HTML encodes citation highlights as inline color: styles on spans/p.
-   Override so passages render in plain ink (dark-mode safe) with
-   only underlines preserved as the citation indicator.
+   CB INLINE STYLE OVERRIDES — belt-and-suspenders
+   sanitizeHTML() strips color: from CB HTML before rendering, but this
+   CSS rule catches anything that survives (e.g. content already cached
+   in window.__Q). Targets all four areas where CB HTML appears.
    ============================================================ */
-.stimulus [style],
-.stimulus [style] * {
+.stimulus [style*="color"],
+.stem [style*="color"],
+.choice .ctxt [style*="color"],
+.rationale [style*="color"] {
   color: var(--ink) !important;
 }
-.stem [style],
-.stem [style] * {
-  color: var(--ink) !important;
-}
-/* But keep any text-decoration (underlines) the CB HTML sets */
 
 /* ============================================================
    QUIZ BODY — two-panel layout with vertical divider
