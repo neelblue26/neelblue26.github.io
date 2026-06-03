@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v7: sanitize choices; fix link color; 16px choices
+   Blue's SAT Practice — v8: unify fonts (Inter everywhere); 15px choices; blue bar fix
    ============================================================ */
 
 /* ============================================================
@@ -19,21 +19,20 @@
 }
 
 /* Neutralize any <a> tags CB embeds in question/choice/rationale HTML.
-   Browser default blue link color would show through otherwise. */
+   Browser default is blue; override to ink color so passages don't look hyperlinked. */
 .stimulus a, .stem a, .q-stem-area a,
 .choice .ctxt a, .rationale a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  text-decoration-thickness: 1px;
+  color: var(--ink) !important;
+  text-decoration: none;
 }
 
 /* ============================================================
    QUIZ BODY — white background + two-panel layout
    ============================================================ */
-/* White background for the quiz — matches CB Bluebook exactly */
+/* White background + full viewport height — prevents body bg (#e8edf3) from bleeding through */
 #screen-quiz {
   background: #fff;
+  min-height: 100vh;
 }
 .quiz-body {
   background: #fff;
@@ -94,9 +93,9 @@
   background: var(--surface);
   border: none;
   border-radius: var(--radius-sm);
-  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  font-size: 16.5px;
-  line-height: 1.80;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
   color: var(--ink);
 }
 .stimulus p { margin: 0 0 14px; }
@@ -218,7 +217,7 @@
   cursor: pointer;
   transition: background 0.1s, border-color 0.1s;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.5;
   margin-bottom: 0;
 }
@@ -248,7 +247,7 @@
   padding-top: 3px;
   text-align: left;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
   color: var(--ink);
 }
