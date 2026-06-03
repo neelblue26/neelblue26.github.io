@@ -401,7 +401,7 @@ function buildAnswerArea(q, restore, c){
       row.className='choice-row'; row.dataset.letter=L;
       const b=document.createElement('button');
       b.className='choice'; b.dataset.letter=L;
-      b.innerHTML=`<span class="letter">${L}</span><span class="ctxt">${opt}</span><span class="mark"></span>`;
+      b.innerHTML=`<span class="letter">${L}</span><span class="ctxt">${sanitizeHTML(opt)}</span><span class="mark"></span>`;
       b.addEventListener('click',()=>selectChoice(L));
       const xb=document.createElement('button');
       xb.className='xout-btn'; xb.dataset.letter=L;
