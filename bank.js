@@ -320,7 +320,11 @@ async function loadQuestion(){
   $('#tag-topic').textContent=q.k;
   const dl=q.df.toLowerCase();
   $('#tag-diff').textContent=q.df; $('#tag-diff').className='tag d-'+dl;
-  const fb=$('#btn-flag'); fb.classList.toggle('on', isFlagged(q.id)); fb.innerHTML=isFlagged(q.id)?'⚑ Flagged':'⚑ Flag';
+  // question number badge + mark-for-review button
+  $('#q-num-badge').textContent=state.i+1;
+  const fb=$('#btn-flag'); const isF=isFlagged(q.id);
+  fb.classList.toggle('on', isF);
+  fb.innerHTML=`<svg viewBox="0 0 24 24" width="14" height="14" fill="${isF?'currentColor':'none'}" stroke="currentColor" stroke-width="2.2"><path d="M5 3h14v18l-7-5-7 5V3z"/></svg> Mark for Review`;
   // pace pill
   const pp=$('#pace-pill');
   if(state.timerMode==='pace'){ const p=paceFor(q);
@@ -379,13 +383,29 @@ function buildAnswerArea(q, restore, c){
   const area=$('#answer-area'); area.innerHTML='';
   if(state.type==='mc'){
     const letters=['A','B','C','D','E','F','G','H'];
+    const xoutSVG=(active)=>active
+      ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/></svg>`
+      : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="12" y1="7.5" x2="12" y2="16.5"/></svg>`;
     (c.o||[]).forEach((opt,idx)=>{
       const L=letters[idx]||('#'+(idx+1));
+      const row=document.createElement('div');
+      row.className='choice-row'; row.dataset.letter=L;
       const b=document.createElement('button');
       b.className='choice'; b.dataset.letter=L;
       b.innerHTML=`<span class="letter">${L}</span><span class="ctxt">${opt}</span><span class="mark"></span>`;
       b.addEventListener('click',()=>selectChoice(L));
-      area.appendChild(b);
+      const xb=document.createElement('button');
+      xb.className='xout-btn'; xb.dataset.letter=L;
+      xb.title='Cross out this answer'; xb.tabIndex=-1;
+      xb.innerHTML=xoutSVG(false);
+      xb.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        if(state.committed) return;
+        const on=row.classList.toggle('xout');
+        xb.innerHTML=xoutSVG(on);
+      });
+      row.appendChild(b); row.appendChild(xb);
+      area.appendChild(row);
     });
     if(restore){ applyMcResult(q, restore.picked); }
   } else { // grid-in (student-produced response)
@@ -492,7 +512,8 @@ function advance(){
 
 $('#btn-quit').addEventListener('click',()=>{ if(confirm('Exit this session? Answered questions are saved to your stats, but this won’t be recorded as a completed session.')){ stopTick(); show('#screen-home'); refreshHome(); } });
 $('#btn-flag').addEventListener('click',()=>{ const q=curQ(); toggleFlag(q.id);
-  $('#btn-flag').classList.toggle('on', isFlagged(q.id)); $('#btn-flag').innerHTML=isFlagged(q.id)?'⚑ Flagged':'⚑ Flag'; });
+  const isF=isFlagged(q.id); $('#btn-flag').classList.toggle('on',isF);
+  $('#btn-flag').innerHTML=`<svg viewBox="0 0 24 24" width="14" height="14" fill="${isF?'currentColor':'none'}" stroke="currentColor" stroke-width="2.2"><path d="M5 3h14v18l-7-5-7 5V3z"/></svg> Mark for Review`; });
 
 /* ---------- timers ---------- */
 function startTick(){ stopTick(); state.tickId=setInterval(tick,250); tick(); }

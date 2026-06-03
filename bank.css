@@ -1,34 +1,26 @@
 /* ============================================================
-   Text / MathML question bank — v2: College Board–matched styling
-   Loaded after styles.css; overrides are intentional.
+   Blue's SAT Practice — v4: College Board Bluebook–matched styling
    ============================================================ */
 
 /* ============================================================
-   QUESTION RENDER CONTAINERS
+   QUIZ BODY — two-panel layout with vertical divider
    ============================================================ */
-#q-render.pdf-render,
-#a-render.pdf-render,
-#rev-q.pdf-render,
-#rev-a.pdf-render {
-  display: block;
-  text-align: left;
-  padding: 24px 28px;
-  line-height: 1.62;
-  font-size: 16.5px;
-  color: var(--ink);
-  overflow-x: auto;
+.quiz-body {
+  border-top: 1px solid var(--line);
 }
-#a-render.pdf-render { background: var(--surface-2); }
 
-/* Math stem (no stimulus) — plain text, no box */
+/* ============================================================
+   QUESTION RENDER (left panel)
+   ============================================================ */
+/* Math stem — no box, plain text on background */
 #q-render.pdf-render:not(.stimulus-panel) {
   border: none !important;
   box-shadow: none !important;
   background: transparent;
-  padding: 4px 8px;
+  padding: 24px 28px 16px;
 }
 
-/* When q-render holds a passage — flush, no border, fills the left panel */
+/* Passage panel — flush fill of left column */
 #q-render.pdf-render.stimulus-panel {
   padding: 0;
   border: none !important;
@@ -38,12 +30,15 @@
 }
 #q-render.stimulus-panel .stimulus {
   margin: 0;
-  padding: 28px 32px;
+  padding: 28px 36px;
   border: none;
   border-radius: 0;
   background: var(--surface);
   min-height: 100%;
 }
+
+/* explanation area */
+#a-render.pdf-render { background: var(--surface-2); }
 
 /* ============================================================
    PASSAGE / STIMULUS
@@ -51,8 +46,8 @@
 .stimulus {
   margin: 0 0 18px;
   padding: 20px 24px;
-  background: var(--surface-2);
-  border: none;           /* remove old left blue accent border */
+  background: var(--surface);
+  border: none;
   border-radius: var(--radius-sm);
   font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   font-size: 16.5px;
@@ -67,10 +62,7 @@
   text-decoration-thickness: 1.5px;
 }
 
-/* hide CB screen-reader-only spans that aren't meaningful visually */
-.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-
-/* CB fill-in-the-blank marker (replaces "_____blank") */
+/* CB fill-in-the-blank */
 .cb-blank {
   display: inline-block;
   width: 72px;
@@ -79,11 +71,60 @@
   margin: 0 2px;
 }
 
+/* Hide CB screen-reader-only spans */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
 /* ============================================================
-   STEM AREA — shown above choices in the right panel (R&W)
+   QUESTION NUMBER BAR (top of right panel)
+   ============================================================ */
+.q-num-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 6px 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 14px;
+}
+.q-num-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 5px;
+  flex: 0 0 auto;
+}
+.mark-review-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.mark-review-btn:hover { border-color: var(--brand); color: var(--brand); }
+.mark-review-btn.on { border-color: var(--brand); color: var(--brand); }
+.mark-review-btn.on svg { fill: var(--brand); }
+
+/* ============================================================
+   STEM AREA (above choices in right panel, R&W questions)
    ============================================================ */
 .q-stem-area {
-  padding: 0 2px 16px;
+  padding: 0 2px 14px;
   margin-bottom: 14px;
   border-bottom: 1px solid var(--line);
   font-size: 16px;
@@ -95,7 +136,7 @@
 .q-stem-area .stem p:last-child { margin-bottom: 0; }
 
 /* ============================================================
-   STEM (question text, general)
+   STEM (question text)
    ============================================================ */
 .stem { font-size: 16px; line-height: 1.62; }
 .stem p, .stimulus p, .rationale p { margin: 0 0 12px; }
@@ -105,35 +146,45 @@
 .rationale ul, .rationale ol { margin: 8px 0 12px; padding-left: 22px; }
 
 /* ============================================================
-   ANSWER CHOICES — College Board style
-   Circle: transparent bg, dark border; filled on select/correct/wrong
+   ANSWER CHOICES — College Board Bluebook style
+   Each choice: [row wrapper] [choice button] [crossout button]
    ============================================================ */
+
+/* Row wrapper holds choice + crossout side by side */
+.choice-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* The main choice button */
 .choice {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  width: 100%;
+  gap: 13px;
+  flex: 1 1 auto;
   text-align: left;
   background: var(--surface);
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  padding: 11px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
-  margin-bottom: 8px;
+  transition: background 0.1s, border-color 0.1s;
   font-size: 16px;
   line-height: 1.5;
+  margin-bottom: 0; /* row handles spacing now */
 }
 .choice:hover {
   background: var(--brand-soft);
   border-color: var(--brand);
 }
 
-/* letter circle — transparent bg, strong border, no fill by default */
+/* Letter circle — transparent, dark border (CB style) */
 .choice .letter {
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: transparent;
   border: 2px solid var(--ink);
@@ -145,51 +196,58 @@
   color: var(--ink);
   margin-top: 2px;
 }
-
-/* choice text */
 .choice .ctxt {
   flex: 1 1 auto;
-  padding-top: 4px;
+  padding-top: 3px;
   text-align: left;
 }
 .choice .ctxt p { margin: 0; }
 .choice .ctxt svg, .choice .ctxt img { max-width: 100%; height: auto; }
-.choice .mark { margin-top: 4px; font-weight: 800; }
+.choice .mark { margin-top: 3px; font-weight: 800; flex: 0 0 auto; }
 
-/* selected — navy circle (matches CB's dark-fill on selection) */
-.choice.sel {
-  background: var(--brand-soft);
-  border-color: var(--brand);
-}
-.choice.sel .letter {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: #fff;
-}
+/* Selected */
+.choice.sel { background: var(--brand-soft); border-color: var(--brand); }
+.choice.sel .letter { background: var(--navy); border-color: var(--navy); color: #fff; }
 
-/* correct */
-.choice.correct {
-  border-color: var(--green);
-  background: var(--green-bg);
-}
-.choice.correct .letter {
-  background: var(--green);
-  border-color: var(--green);
-  color: #fff;
-}
+/* Correct */
+.choice.correct { border-color: var(--green); background: var(--green-bg); }
+.choice.correct .letter { background: var(--green); border-color: var(--green); color: #fff; }
 
-/* wrong */
-.choice.wrong {
-  border-color: var(--red);
-  background: var(--red-bg);
-}
-.choice.wrong .letter {
-  background: var(--red);
-  border-color: var(--red);
-  color: #fff;
-}
+/* Wrong */
+.choice.wrong { border-color: var(--red); background: var(--red-bg); }
+.choice.wrong .letter { background: var(--red); border-color: var(--red); color: #fff; }
 
 .choice.locked { cursor: default; pointer-events: none; }
+
+/* Crossout button (⊕ / ⊗) */
+.xout-btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: color 0.1s, border-color 0.1s;
+  padding: 0;
+}
+.xout-btn:hover { color: var(--ink); border-color: var(--ink-soft); }
+
+/* When a choice-row is crossed out */
+.choice-row.xout .choice .ctxt {
+  text-decoration: line-through;
+  opacity: 0.45;
+}
+.choice-row.xout .choice .letter {
+  opacity: 0.45;
+}
+.choice-row.xout .xout-btn {
+  color: var(--red);
+  border-color: var(--red-bg);
+}
 
 /* ============================================================
    MATH (native MathML)
@@ -202,7 +260,6 @@ p[style*="center"] math { font-size: 1.12em; }
 /* ============================================================
    FIGURES / IMAGES / TABLES
    ============================================================ */
-/* CB wraps figures and tables in <figure> */
 figure { margin: 14px 0; }
 figure.image, figure.table { display: block; }
 
@@ -216,20 +273,24 @@ figure svg, figure img {
   margin: 0 auto;
 }
 
-.stem table, .stimulus table, .rationale table {
+.stem table, .stimulus table, .rationale table,
+figure table {
   border-collapse: collapse;
   margin: 14px auto;
   font-size: 15px;
   max-width: 100%;
+  width: auto;
 }
 .stem th, .stem td,
 .stimulus th, .stimulus td,
-.rationale th, .rationale td {
-  border: 1px solid var(--line);
-  padding: 6px 13px;
+.rationale th, .rationale td,
+figure th, figure td {
+  border: 1px solid var(--ink);
+  padding: 7px 14px;
   text-align: center;
 }
-.stem thead th, .stimulus thead th, .rationale thead th {
+.stem thead th, .stimulus thead th, .rationale thead th,
+figure thead th {
   background: var(--surface-2);
   font-weight: 700;
 }

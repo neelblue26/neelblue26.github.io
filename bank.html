@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=8" />
-<link rel="stylesheet" href="bank.css?v=3" />
+<link rel="stylesheet" href="bank.css?v=4" />
 </head>
 <body>
 <div id="app">
@@ -134,7 +134,6 @@
           <span id="tag-topic" class="tag tag-topic"></span>
           <span id="tag-diff" class="tag"></span>
           <span id="pace-pill" class="pace-pill hidden" title="Pacing target for this question"></span>
-          <button id="btn-flag" class="flag-btn" title="Flag for review (F)">⚑ Flag</button>
         </div>
         <div id="q-render" class="pdf-render"><div class="loader">Loading…</div></div>
         <div id="expl-wrap" class="hidden">
@@ -144,6 +143,13 @@
       </div>
 
       <div class="a-col">
+        <div class="q-num-bar">
+          <span id="q-num-badge" class="q-num-badge">1</span>
+          <button id="btn-flag" class="mark-review-btn" title="Mark for Review (F)">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 3h14v18l-7-5-7 5V3z"/></svg>
+            Mark for Review
+          </button>
+        </div>
         <div id="q-stem" class="q-stem-area hidden"></div>
         <div id="answer-area"></div>
         <div id="reveal-area" class="reveal hidden">
@@ -238,6 +244,6 @@
 </div>
 
 <script src="apdata/index.js?v=1"></script>
-<script src="bank.js?v=3"></script>
+<script src="bank.js?v=4"></script>
 </body>
 </html>
