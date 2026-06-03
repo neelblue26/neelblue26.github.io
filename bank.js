@@ -25,7 +25,13 @@ const saveStore = ()=>{ try{ localStorage.setItem(STORE_KEY, JSON.stringify(stor
 function recordAttempt(id, correct){ const b=store.byId[id]||{a:0,c:0}; b.a++; if(correct)b.c++; store.byId[id]=b; saveStore(); }
 function isFlagged(id){ return store.flagged.includes(id); }
 function toggleFlag(id){ const i=store.flagged.indexOf(id); if(i<0)store.flagged.push(id); else store.flagged.splice(i,1); saveStore(); }
-function seenCount(id){ return store.byId[id]?.a||0; }
+function seenCount(id){ const b=store.byId[id]; return (b?.a||0) || (b?.manualSeen ? 1 : 0); }
+function markManualSeen(id){
+  const b=store.byId[id]||{a:0,c:0};
+  if(b.a>0) return; // already has real attempts — don't override
+  b.manualSeen=true;
+  store.byId[id]=b; saveStore();
+}
 
 /* ---------- catalog ---------- */
 function buildCatalog(){
@@ -52,10 +58,15 @@ let PROG = null;
 function computeProgress(){
   const byTopic={}, byTest={}, byDiff={};
   for(const q of QUESTIONS){
-    const b=store.byId[q.id]; const seen=b&&b.a>0;
+    const b=store.byId[q.id];
+    const seen = b && (b.a>0 || b.manualSeen);
     for(const [map,key] of [[byTopic,q.k],[byTest,q.t],[byDiff,q.df]]){
       const e=map[key]||(map[key]={total:0,done:0,a:0,c:0});
-      e.total++; if(seen){ e.done++; e.a+=b.a; e.c+=b.c; }
+      e.total++;
+      if(seen){
+        e.done++;
+        if(b.a>0){ e.a+=b.a; e.c+=b.c; } // only real attempts affect accuracy
+      }
     }
   }
   return {byTopic,byTest,byDiff};
@@ -377,12 +388,14 @@ async function loadQuestion(){
   if(answered){
     $('#btn-submit').classList.add('hidden');
     $('#btn-skip').classList.add('hidden');
+    $('#btn-mark-seen').classList.add('hidden');
     $('#btn-next').classList.remove('hidden');
   } else {
     $('#btn-submit').classList.remove('hidden');
     $('#btn-submit').textContent = 'Submit';
     $('#btn-submit').disabled = true;
     $('#btn-skip').classList.remove('hidden');
+    $('#btn-mark-seen').classList.remove('hidden');
     $('#btn-next').classList.add('hidden');
   }
   tick();
@@ -492,7 +505,7 @@ function commitAnswer(rec){
   state.committed=true;
   recordAttempt(q.id, rec.correct);
   recomputeScore();
-  $('#btn-submit').classList.add('hidden'); $('#btn-skip').classList.add('hidden');
+  $('#btn-submit').classList.add('hidden'); $('#btn-skip').classList.add('hidden'); $('#btn-mark-seen').classList.add('hidden');
   $('#btn-next').classList.remove('hidden'); $('#btn-next').focus();
 }
 
@@ -508,6 +521,14 @@ function showReveal(q, correct){
 }
 
 $('#btn-skip').addEventListener('click',()=>{
+  state.answers[state.i]={answered:false, skipped:true, ms:Date.now()-state.qStart-state.qPausedTotal};
+  recomputeScore();
+  advance();
+});
+$('#btn-mark-seen').addEventListener('click',()=>{
+  const q=curQ();
+  markManualSeen(q.id);
+  // treat as a skip in this session
   state.answers[state.i]={answered:false, skipped:true, ms:Date.now()-state.qStart-state.qPausedTotal};
   recomputeScore();
   advance();

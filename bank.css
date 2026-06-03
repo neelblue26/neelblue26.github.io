@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v10: wider right column (520px); choice text gets ~420px
+   Blue's SAT Practice — v11: Mark Seen button; SVG cap 72%; layout polish
    ============================================================ */
 
 /* ============================================================
@@ -324,11 +324,11 @@ figure.image, figure.table { display: block; }
 .stem svg, .stimulus svg, .rationale svg,
 .stem img, .stimulus img, .rationale img,
 figure svg, figure img {
-  max-width: 100%;
+  max-width: 72%;   /* cap figures so they don't flood the full column */
   width: auto;
   height: auto;
   display: block;
-  margin: 0 auto;
+  margin: 12px auto;
 }
 
 .stem table, .stimulus table, .rationale table,
@@ -358,3 +358,17 @@ figure thead th {
    ============================================================ */
 .rationale { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.66; color: var(--ink); }
 .rationale strong { color: var(--ink); }
+
+/* ============================================================
+   MARK AS SEEN BUTTON
+   ============================================================ */
+.seen-btn {
+  flex: 0 0 auto;
+  width: auto;
+  font-size: 13px;
+  padding: 8px 13px;
+  color: var(--ink-soft);
+  border-color: var(--line);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.seen-btn:hover { border-color: var(--ink-soft); color: var(--ink); }
