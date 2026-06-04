@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v22: revert to 1280px max-width
+   Blue's SAT Practice — v23: table/thead styling in choices
    ============================================================ */
 
 /* ============================================================
@@ -437,6 +437,7 @@ figure svg, figure img {
 }
 
 .stem table, .stimulus table, .rationale table,
+.choice .ctxt table,
 figure table {
   border-collapse: collapse;
   margin: 14px auto;
@@ -447,18 +448,27 @@ figure table {
 .stem th, .stem td,
 .stimulus th, .stimulus td,
 .rationale th, .rationale td,
+.choice .ctxt th, .choice .ctxt td,
 figure th, figure td {
   border: 1px solid var(--ink);
   padding: 7px 14px;
   text-align: center;
 }
 .stem thead th, .stimulus thead th, .rationale thead th,
+.choice .ctxt thead th,
 figure thead th {
+  background: var(--surface-2);
+  font-weight: 700;
+}
+/* CB sometimes puts <th> inside <tbody> (no proper <thead>) —
+   ensure header cells in choices still get the surface-2 background */
+.choice .ctxt th {
   background: var(--surface-2);
   font-weight: 700;
 }
 /* Table captions — bold title above the table */
 .stem caption, .stimulus caption, .rationale caption,
+.choice .ctxt caption,
 figure caption {
   font-weight: 700;
   font-size: 14px;
