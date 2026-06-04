@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v19: resizable column divider, max-width 1280px
+   Blue's SAT Practice — v20: role=heading paired-passage labels
    ============================================================ */
 
 /* ============================================================
@@ -154,10 +154,13 @@
 
 /* ============================================================
    PAIRED PASSAGE headings (Text 1 / Text 2)
-   CB wraps these in <span class="paired_passage"> inside a <p>.
-   Style as a small bold uppercase label to clearly separate the two texts.
+   CB uses two markup patterns:
+     (a) <span class="paired_passage"> — older format
+     (b) <span role="heading" aria-level="2"> — newer format (some questions lack the class)
+   Both are styled identically: small bold uppercase label.
    ============================================================ */
-.stimulus .paired_passage {
+.stimulus .paired_passage,
+.stimulus [role="heading"] {
   display: block;
   font-weight: 700;
   font-size: 12px;
@@ -165,6 +168,11 @@
   letter-spacing: 0.08em;
   color: var(--ink-soft);
   padding-top: 6px;
+}
+/* Tighten bottom margin on the paragraph that wraps a heading label */
+.stimulus p:has([role="heading"]),
+.stimulus p:has(.paired_passage) {
+  margin-bottom: 4px;
 }
 
 /* ============================================================
