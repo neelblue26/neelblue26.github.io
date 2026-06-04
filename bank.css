@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v23: table/thead styling in choices
+   Blue's SAT Practice — v24: left-justified choice tables
    ============================================================ */
 
 /* ============================================================
@@ -149,6 +149,9 @@
 }
 .stimulus p { margin: 0 0 14px; }
 .stimulus p:last-child { margin-bottom: 0; }
+/* CB embeds <figure> inside <p>, which browsers auto-close → empty <p> before/after figure.
+   Hide these so they don't produce phantom whitespace above tables/SVGs. */
+.stimulus p:empty, .stem p:empty, .choice .ctxt p:empty { display: none; }
 .stimulus u {
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -465,6 +468,12 @@ figure thead th {
 .choice .ctxt th {
   background: var(--surface-2);
   font-weight: 700;
+}
+/* CB wraps tables in choices with figure.table.left-justified to signal
+   left alignment. Specificity must beat .choice .ctxt table (0,2,1). */
+.choice .ctxt .left-justified table {
+  margin-left: 0;
+  margin-right: auto;
 }
 /* Table captions — bold title above the table */
 .stem caption, .stimulus caption, .rationale caption,
