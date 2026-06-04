@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v18: centered layout max-width 1140px
+   Blue's SAT Practice — v19: resizable column divider, max-width 1280px
    ============================================================ */
 
 /* ============================================================
@@ -50,24 +50,53 @@
   border-top: 1px solid var(--line);
   gap: 0;              /* remove grid gap; columns use padding for breathing room */
   padding: 0;
-  grid-template-columns: 1fr 480px;
-  /* Cap at 1140px and center — matches CB Bluebook's layout proportions.
-     Removes the "stretched across a 1536px monitor" feeling. */
-  max-width: 1140px;
+  /* Middle column (12px) is the drag handle for the resizable divider.
+     --a-col-w is set by JS from localStorage (default 480px). */
+  grid-template-columns: 1fr 12px var(--a-col-w, 480px);
+  /* Cap at 1280px and center. The column split is user-draggable via #col-divider. */
+  max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Passage column — right border acts as the panel divider */
+/* Passage column — visual divider is handled by the draggable .col-divider element */
 .q-col {
   padding: 18px 28px 24px 22px;
-  border-right: 1.5px solid var(--line);
 }
 
 /* Choices column */
 .a-col {
   padding: 0 22px 24px 26px;
   gap: 0;  /* tighten — individual elements carry margins */
+}
+
+/* ============================================================
+   DRAGGABLE COLUMN DIVIDER
+   Sits between .q-col and .a-col as the grid's middle column.
+   Renders a thin line via ::before; has a wider pointer hit-area.
+   ============================================================ */
+.col-divider {
+  cursor: col-resize;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.col-divider::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--line);
+  transform: translateX(-50%);
+  transition: background 0.12s, width 0.12s;
+  pointer-events: none;
+}
+.col-divider:hover::before,
+.col-divider.dragging::before {
+  background: var(--brand);
+  width: 3px;
 }
 
 /* ============================================================

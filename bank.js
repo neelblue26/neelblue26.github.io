@@ -801,10 +801,61 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ============================================================
+   RESIZABLE COLUMN DIVIDER
+   Persists the a-col width to localStorage so it survives between
+   questions and page reloads.
+   ============================================================ */
+const LAYOUT_KEY = 'sat_practice_layout_v1';
+let savedACColW = 480;
+
+function applyLayout(){
+  const qb = document.querySelector('.quiz-body');
+  if(qb) qb.style.setProperty('--a-col-w', savedACColW + 'px');
+}
+function loadLayout(){
+  try{ const v = parseInt(localStorage.getItem(LAYOUT_KEY), 10); if(v >= 260 && v <= 780) savedACColW = v; }catch(e){}
+  applyLayout();
+}
+function saveLayout(){
+  try{ localStorage.setItem(LAYOUT_KEY, savedACColW); }catch(e){}
+}
+
+(function initDivider(){
+  const divider = document.getElementById('col-divider');
+  if(!divider) return;
+  let drag = null;
+  divider.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    drag = { startX: e.clientX, startW: savedACColW };
+    divider.classList.add('dragging');
+    divider.setPointerCapture(e.pointerId);
+  });
+  divider.addEventListener('pointermove', e => {
+    if(!drag) return;
+    // Moving mouse LEFT (dx < 0) widens the right panel; RIGHT narrows it.
+    const dx = e.clientX - drag.startX;
+    savedACColW = Math.max(260, Math.min(780, drag.startW - dx));
+    applyLayout();
+  });
+  divider.addEventListener('pointerup', () => {
+    if(!drag) return;
+    drag = null;
+    divider.classList.remove('dragging');
+    saveLayout();
+  });
+  divider.addEventListener('pointercancel', () => {
+    if(!drag) return;
+    drag = null;
+    divider.classList.remove('dragging');
+  });
+})();
+
+/* ============================================================
    INIT
    ============================================================ */
 function init(){
   if(!QUESTIONS.length){ document.body.innerHTML='<p style="padding:40px;font-family:sans-serif">No questions loaded. Make sure apdata/index.js is present (run api-build/assemble.pl).</p>'; return; }
+  loadLayout();
   refreshHome();
 }
 init();
