@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v24: left-justified choice tables
+   Blue's SAT Practice — v25: 1360px layout width
    ============================================================ */
 
 /* ============================================================
@@ -54,7 +54,7 @@
      --a-col-w is set by JS from localStorage (default 480px). */
   grid-template-columns: 1fr 12px var(--a-col-w, 480px);
   /* Cap at 1280px and center. The column split is user-draggable via #col-divider. */
-  max-width: 1280px;
+  max-width: 1360px;
   margin-left: auto;
   margin-right: auto;
 }
