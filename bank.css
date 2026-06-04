@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v20: role=heading paired-passage labels
+   Blue's SAT Practice — v21: fix divider height (align-self: stretch)
    ============================================================ */
 
 /* ============================================================
@@ -80,6 +80,9 @@
   position: relative;
   user-select: none;
   -webkit-user-select: none;
+  /* styles.css sets align-items:start on .quiz-body — override here so the
+     divider stretches to fill the full row height and is always draggable */
+  align-self: stretch;
 }
 .col-divider::before {
   content: '';
