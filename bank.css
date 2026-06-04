@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v21: fix divider height (align-self: stretch)
+   Blue's SAT Practice — v22: widen layout to 1440px
    ============================================================ */
 
 /* ============================================================
@@ -53,8 +53,8 @@
   /* Middle column (12px) is the drag handle for the resizable divider.
      --a-col-w is set by JS from localStorage (default 480px). */
   grid-template-columns: 1fr 12px var(--a-col-w, 480px);
-  /* Cap at 1280px and center. The column split is user-draggable via #col-divider. */
-  max-width: 1280px;
+  /* Cap at 1440px and center. The column split is user-draggable via #col-divider. */
+  max-width: 1440px;
   margin-left: auto;
   margin-right: auto;
 }
