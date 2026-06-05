@@ -96,6 +96,30 @@ function loadShard(pfx){
   return __shardP[pfx];
 }
 async function getContent(id){ await loadShard(id.slice(0,2)); return window.__Q[id]; }
+/* ============================================================
+   MFENCED FIX — Chrome's MathML Core doesn't render <mfenced> fence characters.
+   After inserting HTML into the DOM, call fixMfenced(container) to expand
+   every <mfenced open="X" close="Y"> into <mrow><mo>X</mo>…<mo>Y</mo></mrow>.
+   ============================================================ */
+const _MLNS='http://www.w3.org/1998/Math/MathML';
+function fixMfenced(root){
+  root.querySelectorAll('mfenced').forEach(f=>{
+    const open  = f.getAttribute('open')  ?? '(';
+    const close = f.getAttribute('close') ?? ')';
+    const sepStr=(f.getAttribute('separators')??',').replace(/\s/g,'');
+    const seps=sepStr?sepStr.split(''):[','];
+    const mrow=document.createElementNS(_MLNS,'mrow');
+    if(open){ const mo=document.createElementNS(_MLNS,'mo'); mo.setAttribute('stretchy','false'); mo.textContent=open; mrow.appendChild(mo); }
+    const kids=[...f.childNodes];
+    kids.forEach((child,i)=>{
+      mrow.appendChild(child.cloneNode(true));
+      if(i<kids.length-1){ const mo=document.createElementNS(_MLNS,'mo'); mo.textContent=seps[Math.min(i,seps.length-1)]||','; mrow.appendChild(mo); }
+    });
+    if(close){ const mo=document.createElementNS(_MLNS,'mo'); mo.setAttribute('stretchy','false'); mo.textContent=close; mrow.appendChild(mo); }
+    f.replaceWith(mrow);
+  });
+}
+
 function sanitizeHTML(html){
   if(!html) return '';
   // CB encodes fill-in-the-blank as:
@@ -363,11 +387,14 @@ async function loadQuestion(){
     if(hasStim){
       $('#q-render').innerHTML = '<div class="stimulus">'+sanitizeHTML(c.st)+'</div>';
       $('#q-render').classList.add('stimulus-panel');
+      fixMfenced($('#q-render'));
       stemEl.innerHTML = '<div class="stem">'+sanitizeHTML(c.q||'')+'</div>';
       stemEl.classList.remove('hidden');
+      fixMfenced(stemEl);
     } else {
       $('#q-render').innerHTML = '<div class="stem">'+sanitizeHTML(c.q||'')+'</div>';
       $('#q-render').classList.remove('stimulus-panel');
+      fixMfenced($('#q-render'));
       stemEl.innerHTML = ''; stemEl.classList.add('hidden');
     }
   } else {
@@ -418,6 +445,7 @@ function buildAnswerArea(q, restore, c){
       const b=document.createElement('button');
       b.className='choice'; b.dataset.letter=L;
       b.innerHTML=`<span class="letter">${L}</span><span class="ctxt">${sanitizeHTML(opt)}</span><span class="mark"></span>`;
+      fixMfenced(b);
       b.addEventListener('click',()=>selectChoice(L));
       const xb=document.createElement('button');
       xb.className='xout-btn'; xb.dataset.letter=L;
@@ -521,6 +549,7 @@ function showReveal(q, correct){
   // worked explanation under the (still-visible) question
   $('#expl-wrap').classList.remove('hidden');
   $('#a-render').innerHTML='<div class="rationale">'+sanitizeHTML((state.content&&state.content.r)||'No explanation available.')+'</div>';
+  fixMfenced($('#a-render'));
 }
 
 $('#btn-skip').addEventListener('click',()=>{
@@ -762,7 +791,8 @@ async function openReview(q, res){
     `<div class="reveal-answer" style="margin-top:14px">Correct answer: <strong>${answerDisplay(q,c)}</strong>`+
     (res?` · your result: <strong style="color:${res.skipped?'var(--ink-soft)':res.correct?'var(--green)':'var(--red)'}">${res.skipped?'skipped':res.correct?'correct':'incorrect'}</strong>`:'')+`</div>`+
     `<h3 class="rationale-h" style="margin-top:14px">Explanation</h3>`+
-    `<div id="rev-a" class="pdf-render"><div class="rationale">${(c&&c.r)||'—'}</div></div>`;
+    `<div id="rev-a" class="pdf-render"><div class="rationale">${sanitizeHTML((c&&c.r)||'—')}</div></div>`;
+  fixMfenced(cur);
   $('#review-modal').classList.remove('hidden');
 }
 $('#review-close').addEventListener('click',()=>$('#review-modal').classList.add('hidden'));
