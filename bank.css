@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v25: 1360px layout width
+   Blue's SAT Practice — v26: Desmos calculator panel
    ============================================================ */
 
 /* ============================================================
@@ -513,3 +513,77 @@ figure caption {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 .seen-btn:hover { border-color: var(--ink-soft); color: var(--ink); }
+
+/* ============================================================
+   CALCULATOR BUTTON (quiz topbar)
+   ============================================================ */
+.calc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink-soft);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  width: auto;
+}
+.calc-btn:hover, .calc-btn.on { border-color: var(--brand); color: var(--brand); }
+
+/* ============================================================
+   DESMOS CALCULATOR PANEL — floating, draggable
+   ============================================================ */
+.calc-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 620px;
+  height: 460px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  resize: both;
+  min-width: 340px;
+  min-height: 260px;
+}
+.calc-panel.hidden { display: none; }
+.calc-handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--navy);
+  color: #fff;
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+}
+.calc-handle:active { cursor: grabbing; }
+.calc-title {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #fff;
+}
+.calc-handle .icon-btn {
+  color: rgba(255,255,255,0.8);
+  border-color: rgba(255,255,255,0.3);
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
+}
+.calc-handle .icon-btn:hover { color: #fff; border-color: rgba(255,255,255,0.7); }
+#calc-container {
+  flex: 1;
+  min-height: 0;
+}

@@ -600,6 +600,63 @@ function pauseSession(){ if(state.paused||state.timerMode==='off')return; state.
 function resumeSession(){ if(!state.paused)return; const d=Date.now()-state.pausedAt; state.pausedTotal+=d; state.qPausedTotal+=d; state.paused=false; $('#pause-overlay').classList.add('hidden'); }
 
 /* ============================================================
+   DESMOS GRAPHING CALCULATOR
+   Lazy-loads the Desmos API on first open, then reuses the instance.
+   Panel is draggable via the handle bar.
+   ============================================================ */
+(function initCalc(){
+  const panel   = document.getElementById('calc-panel');
+  const handle  = document.getElementById('calc-handle');
+  const btnOpen = document.getElementById('btn-calc');
+  const btnClose= document.getElementById('btn-calc-close');
+  let calcInstance = null;
+  let desmosLoaded = false;
+
+  function openCalc(){
+    panel.classList.remove('hidden');
+    btnOpen.classList.add('on');
+    if(!desmosLoaded){
+      desmosLoaded = true;
+      const s = document.createElement('script');
+      s.src = 'https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6';
+      s.onload = ()=>{
+        calcInstance = Desmos.GraphingCalculator(
+          document.getElementById('calc-container'),
+          { keypad:true, expressions:true, settingsMenu:true, zoomButtons:true }
+        );
+      };
+      document.head.appendChild(s);
+    }
+  }
+  function closeCalc(){
+    panel.classList.add('hidden');
+    btnOpen.classList.remove('on');
+  }
+  btnOpen.addEventListener('click', ()=>{ panel.classList.contains('hidden') ? openCalc() : closeCalc(); });
+  btnClose.addEventListener('click', closeCalc);
+
+  /* drag via handle */
+  let drag=null;
+  handle.addEventListener('pointerdown', e=>{
+    if(e.target===btnClose) return;
+    e.preventDefault();
+    const r=panel.getBoundingClientRect();
+    drag={ox:e.clientX-r.left, oy:e.clientY-r.top};
+    handle.setPointerCapture(e.pointerId);
+    panel.style.bottom=''; panel.style.right='';
+    panel.style.left=r.left+'px'; panel.style.top=r.top+'px';
+  });
+  handle.addEventListener('pointermove', e=>{
+    if(!drag) return;
+    const x=e.clientX-drag.ox, y=e.clientY-drag.oy;
+    panel.style.left = Math.max(0, Math.min(window.innerWidth-100, x))+'px';
+    panel.style.top  = Math.max(0, Math.min(window.innerHeight-60, y))+'px';
+  });
+  handle.addEventListener('pointerup',   ()=>{ drag=null; });
+  handle.addEventListener('pointercancel',()=>{ drag=null; });
+})();
+
+/* ============================================================
    SUMMARY  (post-session)
    ============================================================ */
 let lastSummary=null;
