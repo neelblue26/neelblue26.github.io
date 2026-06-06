@@ -2,6 +2,7 @@
    Blue's SAT Practice — full College Board bank (text / MathML)
    Catalog from apdata/index.js (window.QIDX)
    Content lazy-loaded from apdata/q/<2-hex>.js (window.__Q)
+   v15
    ============================================================ */
 'use strict';
 
@@ -110,7 +111,7 @@ function fixMfenced(root){
     const seps=sepStr?sepStr.split(''):[','];
     const mrow=document.createElementNS(_MLNS,'mrow');
     if(open){ const mo=document.createElementNS(_MLNS,'mo'); mo.setAttribute('stretchy','false'); mo.textContent=open; mrow.appendChild(mo); }
-    const kids=[...f.childNodes];
+    const kids=[...f.childNodes].filter(n=>n.nodeType!==3||n.textContent.trim()!=='');
     kids.forEach((child,i)=>{
       mrow.appendChild(child.cloneNode(true));
       if(i<kids.length-1){ const mo=document.createElementNS(_MLNS,'mo'); mo.textContent=seps[Math.min(i,seps.length-1)]||','; mrow.appendChild(mo); }
