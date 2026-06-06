@@ -605,22 +605,48 @@ function resumeSession(){ if(!state.paused)return; const d=Date.now()-state.paus
    Panel is draggable via the handle bar.
    ============================================================ */
 (function initCalc(){
-  const panel   = document.getElementById('calc-panel');
-  const handle  = document.getElementById('calc-handle');
-  const btnOpen = document.getElementById('btn-calc');
-  const btnClose= document.getElementById('btn-calc-close');
-  let calcInstance = null;
+  const panel    = document.getElementById('calc-panel');
+  const handle   = document.getElementById('calc-handle');
+  const btnOpen  = document.getElementById('btn-calc');
+  const btnClose = document.getElementById('btn-calc-close');
+  const quizScr  = document.getElementById('screen-quiz');
+  const CALC_W   = 600; // docked width in px
   let desmosLoaded = false;
+  let docked = true; // tracks whether panel is docked to left
+
+  function getTopbarH(){ return document.querySelector('.quiz-bar')?.getBoundingClientRect().bottom || 52; }
+
+  function dock(){
+    docked = true;
+    const th = getTopbarH();
+    Object.assign(panel.style, {
+      left:'0', top:th+'px', right:'auto', bottom:'auto',
+      width:CALC_W+'px', height:`calc(100vh - ${th}px)`,
+      borderRadius:'0', resize:'none'
+    });
+    panel.classList.add('docked');
+    quizScr.style.paddingLeft = CALC_W+'px';
+  }
+
+  function undock(){
+    docked = false;
+    panel.classList.remove('docked');
+    // restore default CSS values so resize works again
+    panel.style.borderRadius = '';
+    panel.style.resize = '';
+    quizScr.style.paddingLeft = '';
+  }
 
   function openCalc(){
     panel.classList.remove('hidden');
     btnOpen.classList.add('on');
+    dock();
     if(!desmosLoaded){
       desmosLoaded = true;
       const s = document.createElement('script');
       s.src = 'https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6';
       s.onload = ()=>{
-        calcInstance = Desmos.GraphingCalculator(
+        window._desmosCalc = Desmos.GraphingCalculator(
           document.getElementById('calc-container'),
           { keypad:true, expressions:true, settingsMenu:true, zoomButtons:true }
         );
@@ -628,31 +654,47 @@ function resumeSession(){ if(!state.paused)return; const d=Date.now()-state.paus
       document.head.appendChild(s);
     }
   }
+
   function closeCalc(){
     panel.classList.add('hidden');
     btnOpen.classList.remove('on');
+    quizScr.style.paddingLeft = '';
+    // reset inline styles so next open re-docks cleanly
+    panel.style.cssText = '';
+    panel.classList.remove('docked');
+    docked = true;
   }
+
   btnOpen.addEventListener('click', ()=>{ panel.classList.contains('hidden') ? openCalc() : closeCalc(); });
   btnClose.addEventListener('click', closeCalc);
 
-  /* drag via handle */
-  let drag=null;
+  /* drag via handle — undocks on first move */
+  let drag = null;
   handle.addEventListener('pointerdown', e=>{
-    if(e.target===btnClose) return;
+    if(e.target === btnClose) return;
     e.preventDefault();
-    const r=panel.getBoundingClientRect();
-    drag={ox:e.clientX-r.left, oy:e.clientY-r.top};
+    const r = panel.getBoundingClientRect();
+    drag = { ox: e.clientX - r.left, oy: e.clientY - r.top, moved: false };
     handle.setPointerCapture(e.pointerId);
-    panel.style.bottom=''; panel.style.right='';
-    panel.style.left=r.left+'px'; panel.style.top=r.top+'px';
   });
   handle.addEventListener('pointermove', e=>{
     if(!drag) return;
-    const x=e.clientX-drag.ox, y=e.clientY-drag.oy;
-    panel.style.left = Math.max(0, Math.min(window.innerWidth-100, x))+'px';
+    if(!drag.moved){
+      drag.moved = true;
+      // Snapshot current position before undocking so panel doesn't jump
+      const r = panel.getBoundingClientRect();
+      undock();
+      panel.style.left = r.left+'px';
+      panel.style.top  = r.top+'px';
+      panel.style.width = r.width+'px';
+      panel.style.height= r.height+'px';
+      panel.style.bottom=''; panel.style.right='';
+    }
+    const x = e.clientX - drag.ox, y = e.clientY - drag.oy;
+    panel.style.left = Math.max(0, Math.min(window.innerWidth-100,  x))+'px';
     panel.style.top  = Math.max(0, Math.min(window.innerHeight-60, y))+'px';
   });
-  handle.addEventListener('pointerup',   ()=>{ drag=null; });
+  handle.addEventListener('pointerup',    ()=>{ drag=null; });
   handle.addEventListener('pointercancel',()=>{ drag=null; });
 })();
 

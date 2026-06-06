@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v26: Desmos calculator panel
+   Blue's SAT Practice — v27: calc docks left, content shifts right
    ============================================================ */
 
 /* ============================================================
@@ -514,6 +514,11 @@ figure caption {
 }
 .seen-btn:hover { border-color: var(--ink-soft); color: var(--ink); }
 
+/* Smooth content shift when calculator docks to left */
+#screen-quiz {
+  transition: padding-left 0.22s ease;
+}
+
 /* ============================================================
    CALCULATOR BUTTON (quiz topbar)
    ============================================================ */
@@ -557,6 +562,13 @@ figure caption {
   min-height: 260px;
 }
 .calc-panel.hidden { display: none; }
+.calc-panel.docked {
+  border-left: none;
+  border-top: none;
+  border-bottom: none;
+  border-right: 1.5px solid var(--line);
+  box-shadow: 2px 0 12px rgba(0,0,0,0.10);
+}
 .calc-handle {
   display: flex;
   align-items: center;
