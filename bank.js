@@ -302,7 +302,7 @@ $$('[data-topics]').forEach(b=>b.addEventListener('click',()=>{
   else { sel.topics.clear(); }
   renderTopics(); updateMatch();
 }));
-$('#opt-seen').addEventListener('change', updateMatch);
+$('#opt-seen').addEventListener('change', ()=>{ saveOpts(); updateMatch(); });
 $('#btn-reset-stats').addEventListener('click',()=>{ if(confirm('Reset ALL saved progress, flags, and session history?')){ store={byId:{},flagged:[],sessions:[]}; saveStore(); refreshHome(); }});
 $$('#btn-theme').forEach(b=>b.addEventListener('click',()=>{ document.body.classList.toggle('theme-dark');
   const dark=document.body.classList.contains('theme-dark');
@@ -1135,6 +1135,20 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ============================================================
+   OPTION PERSISTENCE — saves count/order/timer/seen across reloads
+   ============================================================ */
+const OPTS_KEY='sat_practice_opts_v1';
+function saveOpts(){ try{ localStorage.setItem(OPTS_KEY,JSON.stringify({
+  count:$('#opt-count').value, order:$('#opt-order').value,
+  timer:$('#opt-timer').value, seen:$('#opt-seen').value})); }catch(e){} }
+function loadOpts(){ try{ const s=JSON.parse(localStorage.getItem(OPTS_KEY)); if(!s)return;
+  if(s.count)$('#opt-count').value=s.count;
+  if(s.order)$('#opt-order').value=s.order;
+  if(s.timer)$('#opt-timer').value=s.timer;
+  if(s.seen) $('#opt-seen').value=s.seen; }catch(e){} }
+['opt-count','opt-order','opt-timer'].forEach(id=>document.getElementById(id).addEventListener('change',saveOpts));
+
+/* ============================================================
    RESIZABLE COLUMN DIVIDER
    Persists the a-col width to localStorage so it survives between
    questions and page reloads.
@@ -1223,6 +1237,7 @@ document.querySelectorAll('.review-tab').forEach(tab=>{
 function init(){
   if(!QUESTIONS.length){ document.body.innerHTML='<p style="padding:40px;font-family:sans-serif">No questions loaded. Make sure apdata/index.js is present (run api-build/assemble.pl).</p>'; return; }
   loadLayout();
+  loadOpts();
   refreshHome();
 }
 init();
