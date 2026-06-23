@@ -2,7 +2,7 @@
    Blue's SAT Practice — full College Board bank (text / MathML)
    Catalog from apdata/index.js (window.QIDX)
    Content lazy-loaded from apdata/q/<2-hex>.js (window.__Q)
-   v16
+   v17
    ============================================================ */
 'use strict';
 
@@ -252,9 +252,23 @@ function renderHomeStats(){
   let attempted=0, totA=0, totC=0;
   for(const id in store.byId){ const b=store.byId[id]; if(b.a>0){attempted++; totA+=b.a; totC+=b.c;} }
   const acc = totA? Math.round(100*totC/totA):0;
-  $('#home-stats').innerHTML =
+
+  const pred=predictFromStore();
+  const rw=pred['Reading and Writing'], math=pred['Math'];
+  const totalN=(rw?.n||0)+(math?.n||0);
+  let predHTML='';
+  if(totalN>=5){
+    predHTML='<div class="predict-box"><div class="pb-head">Predicted SAT Score</div>';
+    if(rw)   predHTML+=`<div class="ps-row"><span class="ps-sect">Reading &amp; Writing</span><span class="ps-val">${rw.score}</span></div>`;
+    if(math) predHTML+=`<div class="ps-row"><span class="ps-sect">Math</span><span class="ps-val">${math.score}</span></div>`;
+    if(pred._total!==null) predHTML+=`<div class="ps-row divider"><span class="ps-sect">Total</span><span class="ps-val">${pred._total}</span></div>`;
+    predHTML+=`<div class="pb-note">Based on ${totalN} questions${totalN<30?' · answer more for a better estimate':''}</div></div>`;
+  }
+
+  $('#home-stats').innerHTML=
     `<div class="stat-box"><div class="num">${attempted}</div><div class="lbl">questions seen</div></div>`+
-    `<div class="stat-box"><div class="num">${acc}%</div><div class="lbl">lifetime accuracy</div></div>`;
+    `<div class="stat-box"><div class="num">${acc}%</div><div class="lbl">lifetime accuracy</div></div>`+
+    predHTML;
   $('#flag-num').textContent=store.flagged.length;
   $('#btn-review-flagged').style.display = store.flagged.length? '' : 'none';
   $('#btn-history').style.display = store.sessions.length? '' : 'none';
@@ -738,6 +752,16 @@ function endSession(){
   renderSummary(session);
   show('#screen-summary');
 }
+function _predRow(label, pred){
+  const rw=pred['Reading and Writing'], math=pred['Math'];
+  if(!rw&&!math) return '';
+  let h=`<div class="pred-row"><span class="pred-row-lbl">${label}</span><div class="pred-chips">`;
+  if(rw)   h+=`<span class="pred-chip"><em>R&amp;W</em>${rw.score}</span>`;
+  if(math) h+=`<span class="pred-chip"><em>Math</em>${math.score}</span>`;
+  if(pred._total!==null) h+=`<span class="pred-chip total">= ${pred._total}</span>`;
+  h+='</div></div>';
+  return h;
+}
 function renderSummary(session){
   lastSummary=session;
   const {items, correct, answered, totalMs}=session;
@@ -748,6 +772,19 @@ function renderSummary(session){
     `<div class="big-stat"><div class="num">${correct}/${answered}</div><div class="lbl">correct</div></div>`+
     `<div class="big-stat"><div class="num">${fmt(totalMs/1000)}</div><div class="lbl">total time</div></div>`+
     `<div class="big-stat"><div class="num">${avg.toFixed(0)}s</div><div class="lbl">avg / question</div></div>`;
+
+  // predicted score card
+  const sesPred=predictFromItems(items), allPred=predictFromStore();
+  const sesRow=_predRow('This session',sesPred), allRow=_predRow('All-time',allPred);
+  const predEl=$('#sum-pred');
+  if(sesRow||allRow){
+    predEl.innerHTML='<h2>Predicted SAT Score</h2>'+sesRow+allRow+
+      '<div class="pred-note-row">Difficulty-weighted estimate · not an official College Board score</div>';
+    predEl.classList.remove('hidden');
+  } else {
+    predEl.classList.add('hidden');
+  }
+
   buildBars($('#sum-diff'), groupStats(items, x=>x.df), DIFF_ORDER);
   buildBars($('#sum-topic'), groupStats(items, x=>x.k));
   const list=$('#sum-list'); list.innerHTML='';
@@ -915,6 +952,50 @@ async function openReview(q, res){
 }
 $('#review-close').addEventListener('click',()=>$('#review-modal').classList.add('hidden'));
 $('#review-modal').addEventListener('click',e=>{ if(e.target.id==='review-modal') $('#review-modal').classList.add('hidden'); });
+
+/* ============================================================
+   PREDICTED SAT SCORE
+   Difficulty-weighted accuracy → 200–800 per section.
+   Easy=1, Medium=1.75, Hard=3 — harder questions carry more weight.
+   ============================================================ */
+const DIFF_W = {Easy:1, Medium:1.75, Hard:3};
+
+function _buildPred(sec){
+  const keys=['Reading and Writing','Math'];
+  const out={}; let total=0, hasAll=true;
+  for(const t of keys){
+    const s=sec[t];
+    if(!s||!s.tot){ out[t]=null; hasAll=false; continue; }
+    const score=Math.max(200,Math.min(800, Math.round((200+s.pts/s.tot*600)/10)*10));
+    out[t]={score,n:s.n}; total+=score;
+  }
+  out._total=hasAll?total:null;
+  return out;
+}
+
+function predictFromItems(items){
+  const sec={'Reading and Writing':{pts:0,tot:0,n:0},'Math':{pts:0,tot:0,n:0}};
+  for(const x of items){
+    if(x.skipped) continue;
+    const s=sec[x.t]; if(!s) continue;
+    const w=DIFF_W[x.df]||1;
+    if(x.correct) s.pts+=w;
+    s.tot+=w; s.n++;
+  }
+  return _buildPred(sec);
+}
+
+function predictFromStore(){
+  const sec={'Reading and Writing':{pts:0,tot:0,n:0},'Math':{pts:0,tot:0,n:0}};
+  for(const id in store.byId){
+    const b=store.byId[id]; if(!b.a) continue;
+    const q=QBYID[id]; if(!q) continue;
+    const s=sec[q.t]; if(!s) continue;
+    const w=DIFF_W[q.df]||1;
+    s.pts+=(b.c/b.a)*w; s.tot+=w; s.n++;
+  }
+  return _buildPred(sec);
+}
 
 /* ============================================================
    QUESTION NAVIGATOR

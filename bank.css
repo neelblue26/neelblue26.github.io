@@ -687,3 +687,104 @@ figure caption {
   background: var(--brand);
   border-radius: 50%;
 }
+
+/* ============================================================
+   PREDICTED SAT SCORE — home sidebar card
+   ============================================================ */
+.predict-box {
+  margin-top: 14px;
+  padding: 13px 14px 11px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+}
+.predict-box .pb-head {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+  font-family: 'Inter', sans-serif;
+}
+.predict-box .ps-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 2px 0;
+}
+.predict-box .ps-row.divider {
+  border-top: 1px solid var(--line);
+  margin-top: 7px;
+  padding-top: 9px;
+}
+.predict-box .ps-sect {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-family: 'Inter', sans-serif;
+}
+.predict-box .ps-val {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+}
+.predict-box .ps-row.divider .ps-val {
+  font-size: 26px;
+  color: var(--brand);
+}
+.predict-box .pb-note {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 9px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ============================================================
+   PREDICTED SAT SCORE — session summary card
+   ============================================================ */
+.pred-sum-card h2 { margin-bottom: 14px; }
+.pred-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.pred-row:last-child { border-bottom: none; }
+.pred-row-lbl {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  min-width: 100px;
+  font-family: 'Inter', sans-serif;
+}
+.pred-chips { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.pred-chip {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+}
+.pred-chip em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-right: 3px;
+}
+.pred-chip.total {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--brand);
+  letter-spacing: -0.02em;
+}
+.pred-note-row {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 8px;
+  font-family: 'Inter', sans-serif;
+}
