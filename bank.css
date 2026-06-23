@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v28: qnav, scroll-to-top, xout persist, desmos++
+   Blue's SAT Practice — v29: q-nav position fix, dark mode quiz area, timer fix
    ============================================================ */
 
 /* ============================================================
@@ -40,13 +40,13 @@
 /* ============================================================
    QUIZ BODY — white background + two-panel layout
    ============================================================ */
-/* White background + full viewport height — prevents body bg (#e8edf3) from bleeding through */
+/* Use surface token so dark mode works in the quiz area */
 #screen-quiz {
-  background: #fff;
+  background: var(--surface);
   min-height: 100vh;
 }
 .quiz-body {
-  background: #fff;
+  background: var(--surface);
   border-top: 1px solid var(--line);
   gap: 0;              /* remove grid gap; columns use padding for breathing room */
   padding: 0;
@@ -320,7 +320,7 @@ blockquote {
   gap: 13px;
   flex: 1 1 auto;
   text-align: left;
-  background: #fff;
+  background: var(--surface);
   border: 1.5px solid var(--ink);   /* CB: dark/black border */
   border-radius: 6px;               /* CB: subtle rounding, not pill */
   padding: 12px 14px;
@@ -619,17 +619,19 @@ figure caption {
 .q-nav-open-btn:hover { background: var(--surface); color: var(--ink); }
 .q-nav-open-btn.on { background: var(--brand-soft); color: var(--brand); }
 
-/* The drop-down panel */
+/* The drop-down panel — fixed so it stays put while scrolling */
 #screen-quiz { position: relative; }
 .q-nav-panel {
-  position: absolute;
-  top: 52px; /* sits just below the topbar */
+  position: fixed;
+  top: 64px; /* fallback — JS sets this from the actual quiz-bar bottom */
   left: 0; right: 0;
   background: var(--surface);
   border-bottom: 1.5px solid var(--line);
   padding: 14px 20px;
   z-index: 800;
   box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  max-height: 50vh;
+  overflow-y: auto;
 }
 .q-nav-panel.hidden { display: none; }
 .q-nav-grid {

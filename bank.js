@@ -1,8 +1,8 @@
-/* ============================================================
+﻿/* ============================================================
    Blue's SAT Practice — full College Board bank (text / MathML)
    Catalog from apdata/index.js (window.QIDX)
    Content lazy-loaded from apdata/q/<2-hex>.js (window.__Q)
-   v18
+   v19
    ============================================================ */
 'use strict';
 
@@ -301,7 +301,9 @@ $$('[data-topics]').forEach(b=>b.addEventListener('click',()=>{
 $('#opt-seen').addEventListener('change', updateMatch);
 $('#btn-reset-stats').addEventListener('click',()=>{ if(confirm('Reset ALL saved progress, flags, and session history?')){ store={byId:{},flagged:[],sessions:[]}; saveStore(); refreshHome(); }});
 $$('#btn-theme').forEach(b=>b.addEventListener('click',()=>{ document.body.classList.toggle('theme-dark');
-  try{localStorage.setItem('sat_theme', document.body.classList.contains('theme-dark')?'d':'l');}catch(e){} }));
+  const dark=document.body.classList.contains('theme-dark');
+  try{localStorage.setItem('sat_theme', dark?'d':'l');}catch(e){}
+  if(window._desmosCalc) window._desmosCalc.updateSettings({invertedColors: dark}); }));
 if((()=>{try{return localStorage.getItem('sat_theme')==='d'}catch(e){return false}})()) document.body.classList.add('theme-dark');
 
 function selectionLabel(){
@@ -383,9 +385,10 @@ async function loadQuestion(){
   if(tok!==state._lt) return;            // a newer navigation superseded this one
   state.content=c;
 
-  // tags / progress
+  // tags / progress — fill bar by answers submitted, not by position
   $('#q-index').textContent=state.i+1;
-  $('#progress-fill').style.width=(((state.i)/state.queue.length)*100)+'%';
+  const _answeredN = state.answers.filter(a=>!!a).length;
+  $('#progress-fill').style.width=(_answeredN/state.queue.length*100)+'%';
   $('#tag-test').textContent=rw(q.t);
   $('#tag-topic').textContent=q.k;
   const dl=q.df.toLowerCase();
@@ -562,10 +565,14 @@ function commitAnswer(rec){
   const q=curQ();
   rec.ms = Date.now()-state.qStart-state.qPausedTotal;
   state._frozenQS = rec.ms/1000; // freeze timer at exact submit time
+  $('#timer-q').textContent = fmt(state._frozenQS); // immediately update display; don't wait for next tick
   state.answers[state.i]=rec;
   state.committed=true;
   recordAttempt(q.id, rec.correct);
   recomputeScore();
+  // update progress bar to reflect newly submitted answer
+  const _n=state.answers.filter(a=>!!a).length;
+  $('#progress-fill').style.width=(_n/state.queue.length*100)+'%';
   updateQNav(); // refresh correct/wrong dot in navigator if it's open
   $('#btn-submit').classList.add('hidden'); $('#btn-skip').classList.add('hidden'); $('#btn-mark-seen').classList.add('hidden');
   $('#btn-next').classList.remove('hidden'); $('#btn-next').focus();
@@ -603,11 +610,11 @@ function advance(){
   state.i++; loadQuestion();
 }
 
-$(‘#btn-quit’).addEventListener(‘click’,()=>{ if(confirm(‘Exit this session? Answered questions are saved to your stats, but this won\’t be recorded as a completed session.’)){
+$('#btn-quit').addEventListener('click',()=>{ if(confirm('Exit this session? Answered questions are saved to your stats, but this won\'t be recorded as a completed session.')){
   stopTick();
-  $(‘#calc-panel’).classList.add(‘hidden’); $(‘#btn-calc’).classList.remove(‘on’); $(‘#screen-quiz’).style.paddingLeft=’’;
+  $('#calc-panel').classList.add('hidden'); $('#btn-calc').classList.remove('on'); $('#screen-quiz').style.paddingLeft='';
   closeQNav();
-  show(‘#screen-home’); refreshHome();
+  show('#screen-home'); refreshHome();
 } });
 $('#btn-flag').addEventListener('click',()=>{ const q=curQ(); toggleFlag(q.id);
   const isF=isFlagged(q.id); $('#btn-flag').classList.toggle('on',isF);
@@ -624,7 +631,7 @@ function tick(){
   $('#timer-total').textContent=fmt(totS);
   const qt=$('#timer-q');
   let qS;
-  if(state.committed){ qS=state._frozenQS||0; }
+  if(state.committed){ qS=state._frozenQS||0; qt.textContent=fmt(qS); }
   else { qS=(Date.now()-state.qStart-state.qPausedTotal)/1000; qt.textContent=fmt(qS); }
   qt.classList.remove('good','warn','over');
   if(state.timerMode==='pace'){
@@ -919,7 +926,7 @@ function renderTopicAnalytics(){
 
 function renderSessions(){
   const box=$('#hist-sessions'); box.innerHTML='';
-  if(!store.sessions.length){ box.innerHTML='<div class="hint">No sessions recorded yet — finish a practice set and it’ll show up here.</div>'; return; }
+  if(!store.sessions.length){ box.innerHTML='<div class="hint">No sessions recorded yet — finish a practice set and it\'ll show up here.</div>'; return; }
   for(let i=store.sessions.length-1;i>=0;i--){
     const s=store.sessions[i];
     const acc = s.answered? Math.round(100*s.correct/s.answered):0;
@@ -1030,9 +1037,15 @@ function updateQNav(){
     btn.addEventListener('click',()=>{ state.i=i; closeQNav(); loadQuestion(); });
     grid.appendChild(btn);
   });
+  // scroll the current question button into view within the panel
+  const curBtn=grid.querySelector('.q-nav-btn.current');
+  if(curBtn) requestAnimationFrame(()=>curBtn.scrollIntoView({block:'nearest'}));
 }
 function openQNav(){
   const panel=$('#q-nav-panel'); if(!panel) return;
+  // pin panel immediately below the actual quiz bar (topbar is 64px but measure to be safe)
+  const tb=document.querySelector('.quiz-bar');
+  if(tb) panel.style.top = tb.getBoundingClientRect().bottom + 'px';
   panel.classList.remove('hidden');
   $('#btn-q-nav').classList.add('on');
   updateQNav();
