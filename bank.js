@@ -2,7 +2,7 @@
    Blue's SAT Practice — full College Board bank (text / MathML)
    Catalog from apdata/index.js (window.QIDX)
    Content lazy-loaded from apdata/q/<2-hex>.js (window.__Q)
-   v20
+   v21
    ============================================================ */
 'use strict';
 
@@ -801,6 +801,14 @@ function renderSummary(session){
     `<div class="big-stat"><div class="num">${correct}/${answered}</div><div class="lbl">correct</div></div>`+
     `<div class="big-stat"><div class="num">${fmt(totalMs/1000)}</div><div class="lbl">total time</div></div>`+
     `<div class="big-stat"><div class="num">${avg.toFixed(0)}s</div><div class="lbl">avg / question</div></div>`;
+  const prevBests=store.sessions.slice(0,-1).map(s=>s.pred?._total).filter(Boolean);
+  const prevBest=prevBests.length?Math.max(...prevBests):0;
+  const sesTotal=session.pred?._total;
+  if(sesTotal&&sesTotal>prevBest){
+    $('#big-stats').insertAdjacentHTML('beforeend','<div class="new-best-badge">🏆 New personal best!</div>');
+  }
+  const subEl=$('#sum-session-label');
+  if(subEl){ subEl.textContent=session.label||''; subEl.classList.toggle('hidden',!session.label); }
 
   // predicted score card
   const sesPred=predictFromItems(items), allPred=predictFromStore();
@@ -871,11 +879,14 @@ function renderHistory(){
   const answeredAll = S.reduce((s,x)=>s+(x.answered||0),0);
   const timeAll = S.reduce((s,x)=>s+(x.totalMs||0),0);
   const acc = totA? Math.round(100*totC/totA):0;
+  const bestSes=S.reduce((b,s)=>(s.pred?._total&&(!b||s.pred._total>b.pred._total))?s:b,null);
+  const bestPredStr=bestSes?.pred?._total?`<div class="big-stat"><div class="num">${bestSes.pred._total}</div><div class="lbl">best predicted</div></div>`:'';
   $('#hist-overview').innerHTML=
     `<div class="big-stat accent"><div class="num">${acc}%</div><div class="lbl">overall accuracy</div></div>`+
     `<div class="big-stat"><div class="num">${S.length}</div><div class="lbl">sessions</div></div>`+
     `<div class="big-stat"><div class="num">${answeredAll}</div><div class="lbl">questions done</div></div>`+
-    `<div class="big-stat"><div class="num">${fmt(timeAll/1000)}</div><div class="lbl">total time</div></div>`;
+    `<div class="big-stat"><div class="num">${fmt(timeAll/1000)}</div><div class="lbl">total time</div></div>`+
+    bestPredStr;
   renderActivity();
   renderTopicAnalytics();
   renderSessions();
