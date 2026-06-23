@@ -336,9 +336,10 @@ function startSession(pool, opts){
   opts=opts||{};
   pool=pool.slice();
   const order=$('#opt-order').value, mode=$('#opt-seen').value;
-  if(!opts.flaggedReview && !opts.retry && mode==='exclude') pool=pool.filter(q=>seenCount(q.id)===0);
+  const noFilter = opts.flaggedReview||opts.retry||opts.drill;
+  if(!noFilter && mode==='exclude') pool=pool.filter(q=>seenCount(q.id)===0);
   if(order==='shuffle') shuffle(pool);
-  if(!opts.flaggedReview && !opts.retry && mode==='unseen') pool.sort((a,b)=>(seenCount(a.id)-seenCount(b.id)));
+  if(!noFilter && mode==='unseen') pool.sort((a,b)=>(seenCount(a.id)-seenCount(b.id)));
   const count=parseInt($('#opt-count').value,10);
   if(!opts.flaggedReview && !opts.retry && count>0) pool=pool.slice(0,count);
   if(!pool.length){ alert('No questions match — try different filters or turn off "Exclude seen".'); return; }
@@ -372,6 +373,8 @@ function recomputeScore(){
   $('#score-correct').textContent=c; $('#score-wrong').textContent=w;
   const skipTag=$('#score-skip-tag');
   if(skipTag){ skipTag.classList.toggle('hidden',s===0); if(s) $('#score-skipped').textContent=s; }
+  const pill=document.querySelector('.score-pill');
+  if(pill){ pill.classList.remove('bump'); void pill.offsetWidth; pill.classList.add('bump'); }
 }
 
 async function loadQuestion(){
@@ -947,7 +950,7 @@ function renderTopicAnalytics(){
       `<button class="weak-drill" title="Practice this skill">Drill ▸</button>`;
     el.querySelector('.weak-drill').addEventListener('click',()=>{
       const pool=QUESTIONS.filter(q=>q.k===r.label);
-      if(pool.length) startSession(pool, {retry:true, label:'Drill: '+r.label});
+      if(pool.length) startSession(pool, {drill:true, label:'Drill: '+r.label});
     });
     box.appendChild(el);
   }

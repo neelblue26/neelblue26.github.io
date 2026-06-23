@@ -911,6 +911,10 @@ figure caption {
   .home-main h1 { font-size: 24px; }
 }
 
+/* ---- Score pill feedback animation ---- */
+@keyframes score-bump{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+.score-pill.bump{animation:score-bump .22s ease}
+
 /* ---- Summary: session label + personal best badge ---- */
 .sum-label-sub { font-size:14px; color:var(--ink-soft); margin:-12px 0 20px; font-family:'Inter',sans-serif; }
 .new-best-badge { width:100%; text-align:center; font-size:13px; font-weight:700; color:#b45309; background:#fef3c7; border:1.5px solid #fbbf24; border-radius:8px; padding:7px 14px; font-family:'Inter',sans-serif; }
