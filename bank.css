@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v30: mobile responsive layout, N key q-nav
+   Blue's SAT Practice — v31: mobile polish, dark mode fixes
    ============================================================ */
 
 /* ============================================================
@@ -549,7 +549,7 @@ figure caption {
   right: 24px;
   width: 620px;
   height: 460px;
-  background: #fff;
+  background: var(--surface);
   border: 1.5px solid var(--line);
   border-radius: 10px;
   box-shadow: 0 8px 40px rgba(0,0,0,0.18);
@@ -616,7 +616,7 @@ figure caption {
   color: var(--ink-soft);
   transition: background 0.1s, color 0.1s;
 }
-.q-nav-open-btn:hover { background: var(--surface); color: var(--ink); }
+.q-nav-open-btn:hover { background: var(--surface-2); color: var(--ink); }
 .q-nav-open-btn.on { background: var(--brand-soft); color: var(--brand); }
 
 /* The drop-down panel — fixed so it stays put while scrolling */
@@ -792,6 +792,17 @@ figure caption {
 }
 
 /* ============================================================
+   BAR CHART LABEL TRUNCATION
+   Prevents long skill names from overflowing the grid cell.
+   ============================================================ */
+.bar-row > span:first-child,
+.weak-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
    SUMMARY REVIEW FILTER TABS
    ============================================================ */
 .review-tabs {
@@ -876,8 +887,13 @@ figure caption {
     min-width: unset;
   }
 
-  /* Summary — tighter padding */
+  /* Summary — tighter padding + stacked action buttons */
   .summary-wrap { padding: 14px 14px 40px; }
+  .summary-actions { flex-direction: column; }
+  .summary-actions button { width: 100%; }
+
+  /* History sessions — let meta text wrap on narrow screens */
+  .s-meta { white-space: normal; line-height: 1.4; }
 
   /* Home filter cards */
   .home-main h1 { font-size: 24px; }
