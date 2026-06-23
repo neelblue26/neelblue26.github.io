@@ -327,7 +327,7 @@ $('#btn-history').addEventListener('click',()=>{ renderHistory(); show('#screen-
    SESSION  (index-based answers -> supports Back navigation)
    ============================================================ */
 const state={ queue:[], answers:[], xouts:{}, i:0, type:'mc', committed:false, selChoice:null, content:null, _lt:0,
-  correct:0, wrong:0, skipped:0, label:'',
+  correct:0, wrong:0, skipped:0, label:'', preSeen:new Set(),
   timerMode:'pace', tStart:0, qStart:0, pausedAt:0, pausedTotal:0, qPausedTotal:0, paused:false, tickId:null };
 
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -344,6 +344,7 @@ function startSession(pool, opts){
   if(!pool.length){ alert('No questions match — try different filters or turn off "Exclude seen".'); return; }
 
   state.queue=pool; state.answers=new Array(pool.length).fill(null); state.xouts={}; state.i=0;
+  state.preSeen=new Set(pool.filter(q=>seenCount(q.id)>0).map(q=>q.id));
   state.correct=state.wrong=state.skipped=0; state.label=opts.label||'Practice';
   state.timerMode=$('#opt-timer').value;
   state.tStart=Date.now(); state.pausedTotal=0; state.paused=false;
@@ -399,6 +400,9 @@ async function loadQuestion(){
   $('#tag-topic').textContent=q.k;
   const dl=q.df.toLowerCase();
   $('#tag-diff').textContent=q.df; $('#tag-diff').className='tag d-'+dl;
+  const seenEl=$('#tag-seen');
+  if(seenEl){ const ws=state.preSeen.has(q.id); seenEl.classList.toggle('hidden',!ws);
+    if(ws){ const cnt=store.byId[q.id]?.a||0; seenEl.textContent=cnt>1?`👁 Seen ×${cnt}`:'👁 Seen'; } }
   // question number badge + mark-for-review button
   $('#q-num-badge').textContent=state.i+1;
   const fb=$('#btn-flag'); const isF=isFlagged(q.id);
@@ -458,7 +462,7 @@ async function loadQuestion(){
     $('#btn-submit').textContent = 'Submit';
     $('#btn-submit').disabled = true;
     $('#btn-skip').classList.remove('hidden');
-    $('#btn-mark-seen').classList.remove('hidden');
+    $('#btn-mark-seen').classList.toggle('hidden', state.preSeen.has(q.id));
     $('#btn-next').classList.add('hidden');
   }
   tick();
@@ -1175,7 +1179,20 @@ function saveLayout(){
     drag = null;
     divider.classList.remove('dragging');
   });
+  divider.addEventListener('dblclick', () => {
+    savedACColW = 480;
+    applyLayout();
+    saveLayout();
+  });
 })();
+
+/* auto-pause when user switches away from the tab */
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden) return;
+  if(!$('#screen-quiz').classList.contains('active')) return;
+  if(state.paused) return;
+  pauseSession();
+});
 
 /* ============================================================
    SUMMARY REVIEW FILTER TABS
