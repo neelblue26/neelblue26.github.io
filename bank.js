@@ -2,7 +2,7 @@
    Blue's SAT Practice — full College Board bank (text / MathML)
    Catalog from apdata/index.js (window.QIDX)
    Content lazy-loaded from apdata/q/<2-hex>.js (window.__Q)
-   v17
+   v18
    ============================================================ */
 'use strict';
 
@@ -254,13 +254,13 @@ function renderHomeStats(){
   const acc = totA? Math.round(100*totC/totA):0;
 
   const pred=predictFromStore();
-  const rw=pred['Reading and Writing'], math=pred['Math'];
-  const totalN=(rw?.n||0)+(math?.n||0);
+  const predRW=pred['Reading and Writing'], predMath=pred['Math'];
+  const totalN=(predRW?.n||0)+(predMath?.n||0);
   let predHTML='';
   if(totalN>=5){
     predHTML='<div class="predict-box"><div class="pb-head">Predicted SAT Score</div>';
-    if(rw)   predHTML+=`<div class="ps-row"><span class="ps-sect">Reading &amp; Writing</span><span class="ps-val">${rw.score}</span></div>`;
-    if(math) predHTML+=`<div class="ps-row"><span class="ps-sect">Math</span><span class="ps-val">${math.score}</span></div>`;
+    if(predRW)   predHTML+=`<div class="ps-row"><span class="ps-sect">Reading &amp; Writing</span><span class="ps-val">${predRW.score}</span></div>`;
+    if(predMath) predHTML+=`<div class="ps-row"><span class="ps-sect">Math</span><span class="ps-val">${predMath.score}</span></div>`;
     if(pred._total!==null) predHTML+=`<div class="ps-row divider"><span class="ps-sect">Total</span><span class="ps-val">${pred._total}</span></div>`;
     predHTML+=`<div class="pb-note">Based on ${totalN} questions${totalN<30?' · answer more for a better estimate':''}</div></div>`;
   }
@@ -341,6 +341,11 @@ function startSession(pool, opts){
   state.correct=state.wrong=state.skipped=0; state.label=opts.label||'Practice';
   state.timerMode=$('#opt-timer').value;
   state.tStart=Date.now(); state.pausedTotal=0; state.paused=false;
+  // reset calculator panel so it doesn't reappear from a previous session
+  $('#calc-panel').classList.add('hidden');
+  $('#btn-calc').classList.remove('on');
+  $('#screen-quiz').style.paddingLeft='';
+  closeQNav();
   $('#q-total').textContent=pool.length;
   $('#score-correct').textContent='0'; $('#score-wrong').textContent='0';
   const showTimers = state.timerMode!=='off';
@@ -364,8 +369,8 @@ async function loadQuestion(){
   const tok=(state._lt=state._lt+1);
   const q=curQ(); const ans=state.answers[state.i];
   state.selChoice=null;
-  // scroll both panels back to the top on every question change
-  const aC=$('.a-col'); if(aC) aC.scrollTop=0;
+  // scroll all panels back to the top on every question change
+  window.scrollTo({top:0,behavior:'instant'});
   const qR=$('#q-render'); if(qR) qR.scrollTop=0;
   state.type = q.tp==='mcq' ? 'mc' : 'grid';
   const answered = ans && ans.answered;
@@ -556,10 +561,12 @@ function submitAnswer(){
 function commitAnswer(rec){
   const q=curQ();
   rec.ms = Date.now()-state.qStart-state.qPausedTotal;
+  state._frozenQS = rec.ms/1000; // freeze timer at exact submit time
   state.answers[state.i]=rec;
   state.committed=true;
   recordAttempt(q.id, rec.correct);
   recomputeScore();
+  updateQNav(); // refresh correct/wrong dot in navigator if it's open
   $('#btn-submit').classList.add('hidden'); $('#btn-skip').classList.add('hidden'); $('#btn-mark-seen').classList.add('hidden');
   $('#btn-next').classList.remove('hidden'); $('#btn-next').focus();
 }
@@ -596,10 +603,17 @@ function advance(){
   state.i++; loadQuestion();
 }
 
-$('#btn-quit').addEventListener('click',()=>{ if(confirm('Exit this session? Answered questions are saved to your stats, but this won’t be recorded as a completed session.')){ stopTick(); show('#screen-home'); refreshHome(); } });
+$(‘#btn-quit’).addEventListener(‘click’,()=>{ if(confirm(‘Exit this session? Answered questions are saved to your stats, but this won\’t be recorded as a completed session.’)){
+  stopTick();
+  $(‘#calc-panel’).classList.add(‘hidden’); $(‘#btn-calc’).classList.remove(‘on’); $(‘#screen-quiz’).style.paddingLeft=’’;
+  closeQNav();
+  show(‘#screen-home’); refreshHome();
+} });
 $('#btn-flag').addEventListener('click',()=>{ const q=curQ(); toggleFlag(q.id);
   const isF=isFlagged(q.id); $('#btn-flag').classList.toggle('on',isF);
-  $('#btn-flag').innerHTML=`<svg viewBox="0 0 24 24" width="14" height="14" fill="${isF?'currentColor':'none'}" stroke="currentColor" stroke-width="2.2"><path d="M5 3h14v18l-7-5-7 5V3z"/></svg> Mark for Review`; });
+  $('#btn-flag').innerHTML=`<svg viewBox="0 0 24 24" width="14" height="14" fill="${isF?'currentColor':'none'}" stroke="currentColor" stroke-width="2.2"><path d="M5 3h14v18l-7-5-7 5V3z"/></svg> Mark for Review`;
+  updateQNav(); // refresh flagged dot in navigator if it's open
+});
 
 /* ---------- timers ---------- */
 function startTick(){ stopTick(); state.tickId=setInterval(tick,250); tick(); }
@@ -753,11 +767,11 @@ function endSession(){
   show('#screen-summary');
 }
 function _predRow(label, pred){
-  const rw=pred['Reading and Writing'], math=pred['Math'];
-  if(!rw&&!math) return '';
+  const predRW=pred['Reading and Writing'], predMath=pred['Math'];
+  if(!predRW&&!predMath) return '';
   let h=`<div class="pred-row"><span class="pred-row-lbl">${label}</span><div class="pred-chips">`;
-  if(rw)   h+=`<span class="pred-chip"><em>R&amp;W</em>${rw.score}</span>`;
-  if(math) h+=`<span class="pred-chip"><em>Math</em>${math.score}</span>`;
+  if(predRW)   h+=`<span class="pred-chip"><em>R&amp;W</em>${predRW.score}</span>`;
+  if(predMath) h+=`<span class="pred-chip"><em>Math</em>${predMath.score}</span>`;
   if(pred._total!==null) h+=`<span class="pred-chip total">= ${pred._total}</span>`;
   h+='</div></div>';
   return h;
