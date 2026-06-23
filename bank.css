@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v27: calc docks left, content shifts right
+   Blue's SAT Practice — v28: qnav, scroll-to-top, xout persist, desmos++
    ============================================================ */
 
 /* ============================================================
@@ -598,4 +598,92 @@ figure caption {
 #calc-container {
   flex: 1;
   min-height: 0;
+}
+
+/* ============================================================
+   QUESTION NAVIGATOR PANEL
+   ============================================================ */
+/* Make progress-text a button that triggers the navigator */
+.q-nav-open-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  color: var(--ink-soft);
+  transition: background 0.1s, color 0.1s;
+}
+.q-nav-open-btn:hover { background: var(--surface); color: var(--ink); }
+.q-nav-open-btn.on { background: var(--brand-soft); color: var(--brand); }
+
+/* The drop-down panel */
+#screen-quiz { position: relative; }
+.q-nav-panel {
+  position: absolute;
+  top: 52px; /* sits just below the topbar */
+  left: 0; right: 0;
+  background: var(--surface);
+  border-bottom: 1.5px solid var(--line);
+  padding: 14px 20px;
+  z-index: 800;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+}
+.q-nav-panel.hidden { display: none; }
+.q-nav-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+/* Individual question number buttons */
+.q-nav-btn {
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  border: 1.5px solid var(--line);
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  position: relative;
+  transition: border-color 0.1s, background 0.1s;
+}
+.q-nav-btn:hover { border-color: var(--brand); color: var(--brand); }
+.q-nav-btn.current {
+  border-color: var(--navy);
+  border-width: 2.5px;
+  color: var(--navy);
+}
+.q-nav-btn.correct {
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: var(--green);
+}
+.q-nav-btn.wrong {
+  background: var(--red-bg);
+  border-color: var(--red);
+  color: var(--red);
+}
+.q-nav-btn.skipped {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  border-color: var(--line);
+}
+/* Flagged dot in top-right corner */
+.q-nav-btn.flagged::after {
+  content: '';
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 6px; height: 6px;
+  background: var(--brand);
+  border-radius: 50%;
 }

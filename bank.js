@@ -2,7 +2,7 @@
    Blue's SAT Practice — full College Board bank (text / MathML)
    Catalog from apdata/index.js (window.QIDX)
    Content lazy-loaded from apdata/q/<2-hex>.js (window.__Q)
-   v15
+   v16
    ============================================================ */
 'use strict';
 
@@ -306,7 +306,7 @@ $('#btn-history').addEventListener('click',()=>{ renderHistory(); show('#screen-
 /* ============================================================
    SESSION  (index-based answers -> supports Back navigation)
    ============================================================ */
-const state={ queue:[], answers:[], i:0, type:'mc', committed:false, selChoice:null, content:null, _lt:0,
+const state={ queue:[], answers:[], xouts:{}, i:0, type:'mc', committed:false, selChoice:null, content:null, _lt:0,
   correct:0, wrong:0, skipped:0, label:'',
   timerMode:'pace', tStart:0, qStart:0, pausedAt:0, pausedTotal:0, qPausedTotal:0, paused:false, tickId:null };
 
@@ -323,7 +323,7 @@ function startSession(pool, opts){
   if(!opts.flaggedReview && !opts.retry && count>0) pool=pool.slice(0,count);
   if(!pool.length){ alert('No questions match — try different filters or turn off "Exclude seen".'); return; }
 
-  state.queue=pool; state.answers=new Array(pool.length).fill(null); state.i=0;
+  state.queue=pool; state.answers=new Array(pool.length).fill(null); state.xouts={}; state.i=0;
   state.correct=state.wrong=state.skipped=0; state.label=opts.label||'Practice';
   state.timerMode=$('#opt-timer').value;
   state.tStart=Date.now(); state.pausedTotal=0; state.paused=false;
@@ -350,6 +350,9 @@ async function loadQuestion(){
   const tok=(state._lt=state._lt+1);
   const q=curQ(); const ans=state.answers[state.i];
   state.selChoice=null;
+  // scroll both panels back to the top on every question change
+  const aC=$('.a-col'); if(aC) aC.scrollTop=0;
+  const qR=$('#q-render'); if(qR) qR.scrollTop=0;
   state.type = q.tp==='mcq' ? 'mc' : 'grid';
   const answered = ans && ans.answered;
   state.committed = !!answered;
@@ -414,6 +417,7 @@ async function loadQuestion(){
   if(answered){ showReveal(q, ans.skipped?null:ans.correct); }
   else { $('#reveal-area').classList.add('hidden'); $('#expl-wrap').classList.add('hidden'); }
 
+  updateQNav();
   $('#btn-back').classList.toggle('hidden', state.i===0);
   $('#btn-next').textContent = (state.i===state.queue.length-1)? 'Finish ✓' : 'Next →';
   if(answered){
@@ -452,11 +456,16 @@ function buildAnswerArea(q, restore, c){
       xb.className='xout-btn'; xb.dataset.letter=L;
       xb.title='Cross out this answer'; xb.tabIndex=-1;
       xb.innerHTML=xoutSVG(false);
+      // restore saved xout for this question
+      if(!state.xouts[state.i]) state.xouts[state.i]=new Set();
+      if(state.xouts[state.i].has(L)){ row.classList.add('xout'); xb.innerHTML=xoutSVG(true); }
       xb.addEventListener('click',(e)=>{
         e.stopPropagation();
         if(state.committed) return;
         const on=row.classList.toggle('xout');
         xb.innerHTML=xoutSVG(on);
+        if(!state.xouts[state.i]) state.xouts[state.i]=new Set();
+        if(on) state.xouts[state.i].add(L); else state.xouts[state.i].delete(L);
       });
       row.appendChild(b); row.appendChild(xb);
       area.appendChild(row);
@@ -638,6 +647,8 @@ function resumeSession(){ if(!state.paused)return; const d=Date.now()-state.paus
     quizScr.style.paddingLeft = '';
   }
 
+  function isDark(){ return document.body.classList.contains('theme-dark'); }
+
   function openCalc(){
     panel.classList.remove('hidden');
     btnOpen.classList.add('on');
@@ -649,10 +660,17 @@ function resumeSession(){ if(!state.paused)return; const d=Date.now()-state.paus
       s.onload = ()=>{
         window._desmosCalc = Desmos.GraphingCalculator(
           document.getElementById('calc-container'),
-          { keypad:true, expressions:true, settingsMenu:true, zoomButtons:true }
+          { keypad:true, expressions:true, settingsMenu:true, zoomButtons:true, invertedColors:isDark() }
         );
+        // resize whenever the panel changes size
+        if(typeof ResizeObserver !== 'undefined'){
+          new ResizeObserver(()=>{ window._desmosCalc?.resize(); }).observe(panel);
+        }
       };
       document.head.appendChild(s);
+    } else {
+      // already loaded — let Desmos repaint after the panel becomes visible
+      requestAnimationFrame(()=>{ window._desmosCalc?.resize(); });
     }
   }
 
@@ -899,6 +917,48 @@ $('#review-close').addEventListener('click',()=>$('#review-modal').classList.add
 $('#review-modal').addEventListener('click',e=>{ if(e.target.id==='review-modal') $('#review-modal').classList.add('hidden'); });
 
 /* ============================================================
+   QUESTION NAVIGATOR
+   ============================================================ */
+function updateQNav(){
+  const panel=$('#q-nav-panel');
+  if(!panel||panel.classList.contains('hidden')) return;
+  const grid=$('#q-nav-grid'); grid.innerHTML='';
+  state.queue.forEach((q,i)=>{
+    const btn=document.createElement('button');
+    btn.className='q-nav-btn';
+    btn.textContent=i+1;
+    const ans=state.answers[i];
+    if(i===state.i) btn.classList.add('current');
+    if(ans){ if(ans.skipped) btn.classList.add('skipped'); else if(ans.correct) btn.classList.add('correct'); else btn.classList.add('wrong'); }
+    if(isFlagged(q.id)) btn.classList.add('flagged');
+    btn.title=`Q${i+1} · ${q.k} · ${q.df}`;
+    btn.addEventListener('click',()=>{ state.i=i; closeQNav(); loadQuestion(); });
+    grid.appendChild(btn);
+  });
+}
+function openQNav(){
+  const panel=$('#q-nav-panel'); if(!panel) return;
+  panel.classList.remove('hidden');
+  $('#btn-q-nav').classList.add('on');
+  updateQNav();
+}
+function closeQNav(){
+  const panel=$('#q-nav-panel'); if(!panel) return;
+  panel.classList.add('hidden');
+  $('#btn-q-nav')?.classList.remove('on');
+}
+$('#btn-q-nav').addEventListener('click',()=>{
+  const panel=$('#q-nav-panel');
+  panel.classList.contains('hidden') ? openQNav() : closeQNav();
+});
+// close when clicking outside the panel
+document.addEventListener('click',e=>{
+  const panel=$('#q-nav-panel');
+  if(!panel||panel.classList.contains('hidden')) return;
+  if(!panel.contains(e.target)&&e.target.id!=='btn-q-nav'&&!e.target.closest('#btn-q-nav')) closeQNav();
+},true);
+
+/* ============================================================
    KEYBOARD
    ============================================================ */
 document.addEventListener('keydown',e=>{
@@ -907,6 +967,7 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if(!$('#review-modal').classList.contains('hidden')){ if(e.key==='Escape') $('#review-modal').classList.add('hidden'); return; }
+  if(!$('#q-nav-panel').classList.contains('hidden')){ if(e.key==='Escape') closeQNav(); return; }
   if(state.paused){ if(e.key==='Escape'||e.key.toLowerCase()==='p') resumeSession(); return; }
   const inGrid = document.activeElement && document.activeElement.id==='grid-input';
   if(e.key==='Enter'){
@@ -918,6 +979,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'){ if(!$('#btn-back').classList.contains('hidden')){ e.preventDefault(); $('#btn-back').click(); } return; }
   if(e.key==='ArrowRight'){ if(!$('#btn-next').classList.contains('hidden')){ e.preventDefault(); advance(); } return; }
   if(inGrid) return;
+  if(e.key.toLowerCase()==='c'){ e.preventDefault(); $('#btn-calc').click(); return; }
   if(e.key.toLowerCase()==='f'){ e.preventDefault(); $('#btn-flag').click(); return; }
   if(e.key.toLowerCase()==='p'){ e.preventDefault(); pauseSession(); return; }
   if(e.key.toLowerCase()==='b'){ if(!$('#btn-back').classList.contains('hidden')){ e.preventDefault(); $('#btn-back').click(); } return; }
