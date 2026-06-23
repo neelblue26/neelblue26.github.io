@@ -865,8 +865,9 @@ figure caption {
     gap: 6px;
   }
   .quiz-meta { flex-wrap: wrap; gap: 5px; }
-  /* Drop total timer — saves topbar space, question timer is the key metric */
+  /* Drop total timer + "Calculator" label — saves topbar space */
   #timer-total { display: none !important; }
+  .calc-label { display: none; }
 
   /* Choices — slightly more compact */
   .choice { padding: 10px 12px; gap: 10px; font-size: 14.5px; }
