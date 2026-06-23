@@ -792,6 +792,17 @@ figure caption {
 }
 
 /* ============================================================
+   HOME STATS — last practiced hint
+   ============================================================ */
+.last-prac {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 10px;
+  font-family: 'Inter', sans-serif;
+  grid-column: 1 / -1;
+}
+
+/* ============================================================
    BAR CHART LABEL TRUNCATION
    Prevents long skill names from overflowing the grid cell.
    ============================================================ */

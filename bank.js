@@ -265,10 +265,14 @@ function renderHomeStats(){
     predHTML+=`<div class="pb-note">Based on ${totalN} questions${totalN<30?' · answer more for a better estimate':''}</div></div>`;
   }
 
+  const lastSes=store.sessions[store.sessions.length-1];
+  let lastPracHTML='';
+  if(lastSes){ const d=Math.floor((Date.now()-lastSes.ts)/864e5);
+    lastPracHTML=`<div class="last-prac">Last practiced: ${d===0?'today':d===1?'yesterday':d+' days ago'}</div>`; }
   $('#home-stats').innerHTML=
     `<div class="stat-box"><div class="num">${attempted}</div><div class="lbl">questions seen</div></div>`+
     `<div class="stat-box"><div class="num">${acc}%</div><div class="lbl">lifetime accuracy</div></div>`+
-    predHTML;
+    predHTML+lastPracHTML;
   $('#flag-num').textContent=store.flagged.length;
   $('#btn-review-flagged').style.display = store.flagged.length? '' : 'none';
   $('#btn-history').style.display = store.sessions.length? '' : 'none';
