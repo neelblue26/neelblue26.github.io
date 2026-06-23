@@ -769,7 +769,8 @@ function endSession(){
   const answered=items.filter(x=>!x.skipped).length;
   const skipped=items.filter(x=>x.skipped).length;
   const totalMs=items.reduce((s,x)=>s+x.ms,0);
-  const session={ ts:Date.now(), label:state.label, correct, wrong:answered-correct, skipped, answered, totalMs, items };
+  const pred=predictFromItems(items);
+  const session={ ts:Date.now(), label:state.label, correct, wrong:answered-correct, skipped, answered, totalMs, items, pred };
   store.sessions.push(session);
   if(store.sessions.length>120) store.sessions=store.sessions.slice(-120);
   saveStore();
@@ -854,7 +855,7 @@ $('#btn-sum-history').addEventListener('click',()=>{ renderHistory(); show('#scr
 $('#btn-retry-wrong').addEventListener('click',()=>{
   const ids=new Set((lastSummary?lastSummary.items:[]).filter(x=>!x.correct).map(x=>x.id));
   const pool=QUESTIONS.filter(q=>ids.has(q.id));
-  if(pool.length) startSession(pool, {retry:true, label:'Retry incorrect'}); else { show('#screen-home'); refreshHome(); }
+  if(pool.length) startSession(pool, {retry:true, label:'Retry incorrect & skipped'}); else { show('#screen-home'); refreshHome(); }
 });
 
 /* ============================================================
@@ -944,9 +945,10 @@ function renderSessions(){
     const d=new Date(s.ts);
     const dateStr=d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
     const head=document.createElement('div'); head.className='session-head';
+    const predStr = s.pred?._total ? ` · ~${s.pred._total}` : '';
     head.innerHTML=`<span class="s-acc" style="color:${accCol}">${acc}%</span>`+
       `<span class="s-main"><b>${s.label||'Practice'}</b><span class="s-sub">${dateStr}</span></span>`+
-      `<span class="s-meta">${s.correct}/${s.answered}${s.skipped?` · ${s.skipped} skipped`:''} · ${fmt(s.totalMs/1000)}</span>`+
+      `<span class="s-meta">${s.correct}/${s.answered}${s.skipped?` · ${s.skipped} skipped`:''} · ${fmt(s.totalMs/1000)}${predStr}</span>`+
       `<span class="s-caret">▾</span>`;
     const body=document.createElement('div'); body.className='session-body';
     const wrong=s.items.filter(x=>!x.skipped&&!x.correct);
