@@ -1,5 +1,5 @@
 /* ============================================================
-   Blue's SAT Practice — v29: q-nav position fix, dark mode quiz area, timer fix
+   Blue's SAT Practice — v30: mobile responsive layout, N key q-nav
    ============================================================ */
 
 /* ============================================================
@@ -789,4 +789,96 @@ figure caption {
   color: var(--ink-soft);
   margin-top: 8px;
   font-family: 'Inter', sans-serif;
+}
+
+/* ============================================================
+   SUMMARY REVIEW FILTER TABS
+   ============================================================ */
+.review-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.review-tab {
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: 1.5px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  width: auto;
+}
+.review-tab:hover { border-color: var(--brand); color: var(--brand-ink); }
+.review-tab.active { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-ink); }
+
+/* ============================================================
+   RESPONSIVE — 900px breakpoint
+   bank.css's 3-col quiz-body grid overrides styles.css's 1-col reset,
+   so we repeat the fix here (bank.css loads after styles.css).
+   ============================================================ */
+@media (max-width: 900px) {
+  /* Restore single-column quiz layout */
+  .quiz-body {
+    display: flex;
+    flex-direction: column;
+  }
+  /* Hide the draggable divider — no columns to resize */
+  .col-divider { display: none; }
+  /* Un-sticky the choices panel */
+  .a-col { position: static; top: auto; }
+  /* Show home sidebar BEFORE the filter cards so Start button is visible first */
+  .home-side { order: -1; }
+  /* Passage panel — scrollable, capped so choices are reachable below */
+  #q-render.pdf-render.stimulus-panel {
+    max-height: 45vh;
+    overflow-y: auto;
+    border-bottom: 1.5px solid var(--line);
+  }
+}
+
+/* ============================================================
+   NARROW — phone-specific tweaks (< 500px)
+   ============================================================ */
+@media (max-width: 500px) {
+  /* Quiz topbar — wrap to two rows */
+  .topbar.quiz-bar {
+    height: auto;
+    min-height: 52px;
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .quiz-meta { flex-wrap: wrap; gap: 5px; }
+  /* Drop total timer — saves topbar space, question timer is the key metric */
+  #timer-total { display: none !important; }
+
+  /* Choices — slightly more compact */
+  .choice { padding: 10px 12px; gap: 10px; font-size: 14.5px; }
+  .choice .letter { width: 26px; height: 26px; font-size: 12px; }
+  .xout-btn { width: 30px; }
+
+  /* Q-nav grid — smaller buttons so 10+ fit per row */
+  .q-nav-btn { width: 30px; height: 30px; font-size: 11px; }
+  .q-nav-grid { gap: 5px; }
+
+  /* Calculator — full-width floating (not docked) */
+  .calc-panel {
+    left: 6px !important;
+    right: 6px !important;
+    bottom: 6px !important;
+    width: auto !important;
+    height: 55vh;
+    min-width: unset;
+  }
+
+  /* Summary — tighter padding */
+  .summary-wrap { padding: 14px 14px 40px; }
+
+  /* Home filter cards */
+  .home-main h1 { font-size: 24px; }
 }

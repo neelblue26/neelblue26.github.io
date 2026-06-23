@@ -2,7 +2,7 @@
    Blue's SAT Practice — full College Board bank (text / MathML)
    Catalog from apdata/index.js (window.QIDX)
    Content lazy-loaded from apdata/q/<2-hex>.js (window.__Q)
-   v19
+   v20
    ============================================================ */
 'use strict';
 
@@ -365,6 +365,8 @@ function recomputeScore(){
   for(const a of state.answers){ if(!a) continue; if(a.skipped) s++; else if(a.correct) c++; else w++; }
   state.correct=c; state.wrong=w; state.skipped=s;
   $('#score-correct').textContent=c; $('#score-wrong').textContent=w;
+  const skipTag=$('#score-skip-tag');
+  if(skipTag){ skipTag.classList.toggle('hidden',s===0); if(s) $('#score-skipped').textContent=s; }
 }
 
 async function loadQuestion(){
@@ -662,6 +664,7 @@ function resumeSession(){ if(!state.paused)return; const d=Date.now()-state.paus
   function getTopbarH(){ return document.querySelector('.quiz-bar')?.getBoundingClientRect().bottom || 52; }
 
   function dock(){
+    if(window.innerWidth <= 700) return; // mobile — float instead of dock
     docked = true;
     const th = getTopbarH();
     Object.assign(panel.style, {
@@ -808,8 +811,14 @@ function renderSummary(session){
 
   buildBars($('#sum-diff'), groupStats(items, x=>x.df), DIFF_ORDER);
   buildBars($('#sum-topic'), groupStats(items, x=>x.k));
-  const list=$('#sum-list'); list.innerHTML='';
-  items.forEach(x=> list.appendChild(reviewRow(x)) );
+  _sumListFilter='all';
+  const tabCounts={ all:items.length, correct:items.filter(x=>!x.skipped&&x.correct).length, wrong:items.filter(x=>!x.skipped&&!x.correct).length, skipped:items.filter(x=>x.skipped).length };
+  const tabLabels={ all:'All', correct:'✓ Correct', wrong:'✗ Wrong', skipped:'Skipped' };
+  document.querySelectorAll('.review-tab').forEach(t=>{ const f=t.dataset.filter; t.textContent=`${tabLabels[f]||f} (${tabCounts[f]||0})`; t.classList.toggle('active',f==='all'); });
+  const retryCount=items.filter(x=>!x.correct).length;
+  const retryBtn=$('#btn-retry-wrong');
+  if(retryBtn){ retryBtn.textContent=retryCount?`Retry incorrect & skipped (${retryCount})`:'All correct!'; retryBtn.disabled=retryCount===0; }
+  renderSumList(items);
 }
 function reviewRow(x){
   const item=document.createElement('div'); item.className='review-item';
@@ -1092,6 +1101,7 @@ document.addEventListener('keydown',e=>{
   if(e.key.toLowerCase()==='p'){ e.preventDefault(); pauseSession(); return; }
   if(e.key.toLowerCase()==='b'){ if(!$('#btn-back').classList.contains('hidden')){ e.preventDefault(); $('#btn-back').click(); } return; }
   if(e.key.toLowerCase()==='s'){ if(!$('#btn-skip').classList.contains('hidden')){ e.preventDefault(); $('#btn-skip').click(); } return; }
+  if(e.key.toLowerCase()==='n'){ e.preventDefault(); $('#btn-q-nav').click(); return; }
   if(state.type==='mc' && !state.committed){
     let L=null;
     if(['a','b','c','d'].includes(e.key.toLowerCase())) L=e.key.toUpperCase();
@@ -1149,6 +1159,26 @@ function saveLayout(){
     divider.classList.remove('dragging');
   });
 })();
+
+/* ============================================================
+   SUMMARY REVIEW FILTER TABS
+   ============================================================ */
+let _sumListFilter='all';
+function renderSumList(items){
+  const list=$('#sum-list'); list.innerHTML='';
+  const filtered = _sumListFilter==='correct' ? items.filter(x=>!x.skipped&&x.correct) :
+                   _sumListFilter==='wrong'   ? items.filter(x=>!x.skipped&&!x.correct) :
+                   _sumListFilter==='skipped' ? items.filter(x=>x.skipped) : items;
+  if(!filtered.length){ list.innerHTML='<div class="hint">No items in this category.</div>'; return; }
+  filtered.forEach(x=>list.appendChild(reviewRow(x)));
+}
+document.querySelectorAll('.review-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    _sumListFilter=tab.dataset.filter;
+    document.querySelectorAll('.review-tab').forEach(t=>t.classList.toggle('active',t===tab));
+    if(lastSummary) renderSumList(lastSummary.items);
+  });
+});
 
 /* ============================================================
    INIT
