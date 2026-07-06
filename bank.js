@@ -275,7 +275,7 @@ function renderHomeStats(){
     predHTML+lastPracHTML;
   $('#flag-num').textContent=store.flagged.length;
   $('#btn-review-flagged').style.display = store.flagged.length? '' : 'none';
-  $('#btn-history').style.display = store.sessions.length? '' : 'none';
+  $('#btn-history').style.display = '';
 }
 
 /* home events */
