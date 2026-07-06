@@ -2,7 +2,7 @@
    Blue's SAT Practice — full College Board bank (text / MathML)
    Catalog from apdata/index.js (window.QIDX)
    Content lazy-loaded from apdata/q/<2-hex>.js (window.__Q)
-   v21
+   v22
    ============================================================ */
 'use strict';
 
@@ -385,7 +385,7 @@ async function loadQuestion(){
   window.scrollTo({top:0,behavior:'instant'});
   const qR=$('#q-render'); if(qR) qR.scrollTop=0;
   state.type = q.tp==='mcq' ? 'mc' : 'grid';
-  const answered = ans && ans.answered;
+  const answered = ans && (ans.answered || ans.checked);
   state.committed = !!answered;
 
   // content first (needed for options, answer key, grading)
@@ -458,6 +458,7 @@ async function loadQuestion(){
   if(answered){
     $('#btn-submit').classList.add('hidden');
     $('#btn-skip').classList.add('hidden');
+    $('#btn-check').classList.add('hidden');
     $('#btn-mark-seen').classList.add('hidden');
     $('#btn-next').classList.remove('hidden');
   } else {
@@ -465,6 +466,7 @@ async function loadQuestion(){
     $('#btn-submit').textContent = 'Submit';
     $('#btn-submit').disabled = true;
     $('#btn-skip').classList.remove('hidden');
+    $('#btn-check').classList.remove('hidden');
     $('#btn-mark-seen').classList.toggle('hidden', state.preSeen.has(q.id));
     $('#btn-next').classList.add('hidden');
   }
@@ -513,7 +515,7 @@ function buildAnswerArea(q, restore, c){
       <div class="hint-sm">Enter a number, fraction, or decimal.</div>`;
     area.appendChild(wrap);
     const inp=wrap.querySelector('#grid-input');
-    if(restore){ inp.value=restore.picked||''; inp.disabled=true; inp.classList.add(restore.correct?'correct':'wrong'); }
+    if(restore){ inp.value=restore.picked||''; inp.disabled=true; if(!restore.checked) inp.classList.add(restore.correct?'correct':'wrong'); }
     else { inp.addEventListener('input',()=>{ $('#btn-submit').disabled = inp.value.trim()===''; });
            setTimeout(()=>inp.focus(),60); }
   }
@@ -607,6 +609,25 @@ $('#btn-skip').addEventListener('click',()=>{
   state.answers[state.i]={answered:false, skipped:true, ms:Date.now()-state.qStart-state.qPausedTotal};
   recomputeScore();
   advance();
+});
+$('#btn-check').addEventListener('click',()=>{
+  const q=curQ();
+  const ms=Date.now()-state.qStart-state.qPausedTotal;
+  state.answers[state.i]={answered:false, skipped:true, checked:true, ms};
+  state._frozenQS=ms/1000;
+  $('#timer-q').textContent=fmt(state._frozenQS);
+  state.committed=true;
+  markManualSeen(q.id);
+  recomputeScore();
+  const _n=state.answers.filter(a=>!!a).length;
+  $('#progress-fill').style.width=(_n/state.queue.length*100)+'%';
+  updateQNav();
+  $('#btn-submit').classList.add('hidden'); $('#btn-skip').classList.add('hidden');
+  $('#btn-check').classList.add('hidden'); $('#btn-mark-seen').classList.add('hidden');
+  $('#btn-next').classList.remove('hidden'); $('#btn-next').focus();
+  if(state.type==='mc') applyMcResult(q, undefined);
+  else { const inp=$('#grid-input'); if(inp) inp.disabled=true; }
+  showReveal(q, null);
 });
 $('#btn-mark-seen').addEventListener('click',()=>{
   const q=curQ();
@@ -998,10 +1019,13 @@ async function openReview(q, res){
     `<span class="tag d-${dl}">${q.df}</span></div>`+
     `<div id="rev-q" class="pdf-render">${c?qHTML(c):'—'}</div>`+
     `<div class="reveal-answer" style="margin-top:14px">Correct answer: <strong>${answerDisplay(q,c)}</strong>`+
-    (res?` · your result: <strong style="color:${res.skipped?'var(--ink-soft)':res.correct?'var(--green)':'var(--red)'}">${res.skipped?'skipped':res.correct?'correct':'incorrect'}</strong>`:'')+`</div>`+
+    (res?` · your result: <strong style="color:${res.skipped?'var(--ink-soft)':res.correct?'var(--green)':'var(--red)'}">${res.checked?'checked':res.skipped?'skipped':res.correct?'correct':'incorrect'}</strong>`:'')+`</div>`+
     `<h3 class="rationale-h" style="margin-top:14px">Explanation</h3>`+
     `<div id="rev-a" class="pdf-render"><div class="rationale">${sanitizeHTML((c&&c.r)||'—')}</div></div>`;
   fixMfenced(cur);
+  const flagBtn=$('#review-flag-btn');
+  if(flagBtn){ flagBtn.textContent=isFlagged(q.id)?'⚑':'⚐';
+    flagBtn.onclick=()=>{ toggleFlag(q.id); flagBtn.textContent=isFlagged(q.id)?'⚑':'⚐'; }; }
   $('#review-modal').classList.remove('hidden');
 }
 $('#review-close').addEventListener('click',()=>$('#review-modal').classList.add('hidden'));
