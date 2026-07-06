@@ -644,12 +644,15 @@ function advance(){
   state.i++; loadQuestion();
 }
 
-$('#btn-quit').addEventListener('click',()=>{ if(confirm('Exit this session? Answered questions are saved to your stats, but this won\'t be recorded as a completed session.')){
-  stopTick();
-  $('#calc-panel').classList.add('hidden'); $('#btn-calc').classList.remove('on'); $('#screen-quiz').style.paddingLeft='';
-  closeQNav();
-  show('#screen-home'); refreshHome();
-} });
+$('#btn-quit').addEventListener('click',()=>{
+  const answeredAny=state.answers.some(a=>!!a);
+  if(confirm(answeredAny?'Exit this session? Your progress will be saved to history.':'Exit this session?')){
+    $('#calc-panel').classList.add('hidden'); $('#btn-calc').classList.remove('on'); $('#screen-quiz').style.paddingLeft='';
+    closeQNav();
+    if(answeredAny){ endSession(true); }
+    else { stopTick(); show('#screen-home'); refreshHome(); }
+  }
+});
 $('#btn-flag').addEventListener('click',()=>{ const q=curQ(); toggleFlag(q.id);
   const isF=isFlagged(q.id); $('#btn-flag').classList.toggle('on',isF);
   $('#btn-flag').innerHTML=`<svg viewBox="0 0 24 24" width="14" height="14" fill="${isF?'currentColor':'none'}" stroke="currentColor" stroke-width="2.2"><path d="M5 3h14v18l-7-5-7 5V3z"/></svg> Mark for Review`;
@@ -791,9 +794,10 @@ function resumeSession(){ if(!state.paused)return; const d=Date.now()-state.paus
    SUMMARY  (post-session)
    ============================================================ */
 let lastSummary=null;
-function endSession(){
+function endSession(early){
   stopTick();
-  const items = state.answers.map((a,i)=>{ const q=state.queue[i];
+  const pairs=state.answers.map((a,i)=>({a,q:state.queue[i]}));
+  const items=(early?pairs.filter(p=>!!p.a):pairs).map(({a,q})=>{
     if(!a) return {id:q.id,t:q.t,k:q.k,df:q.df,correct:false,skipped:true,ms:0};
     return {id:q.id,t:q.t,k:q.k,df:q.df,correct:!!a.correct,skipped:!!a.skipped,ms:a.ms||0};
   });
