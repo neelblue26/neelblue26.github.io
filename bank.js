@@ -7,6 +7,7 @@
 'use strict';
 
 const QUESTIONS = window.QIDX || [];
+const LATEST_BATCH = QUESTIONS.reduce((latest,q)=>q.addedBatch && q.addedBatch>latest ? q.addedBatch : latest, '');
 const QBYID = {}; for(const q of QUESTIONS) QBYID[q.id]=q;
 const DIFF_ORDER = ['Easy','Medium','Hard'];
 
@@ -227,7 +228,9 @@ function renderTopics(){
   if(!shown) box.innerHTML='<div class="hint" style="padding:16px 6px">No skills match your search.</div>';
 }
 function matching(){
-  return QUESTIONS.filter(q=> sel.tests.has(q.t) && sel.topics.has(q.k) && sel.diffs.has(q.df));
+  const newOnly=$('#opt-bank').value==='new';
+  return QUESTIONS.filter(q=> sel.tests.has(q.t) && sel.topics.has(q.k) && sel.diffs.has(q.df)
+    && (!newOnly || (LATEST_BATCH && q.addedBatch===LATEST_BATCH)));
 }
 function updateMatch(){
   const filtered=matching();
@@ -303,6 +306,7 @@ $$('[data-topics]').forEach(b=>b.addEventListener('click',()=>{
   renderTopics(); updateMatch();
 }));
 $('#opt-seen').addEventListener('change', ()=>{ saveOpts(); updateMatch(); });
+$('#opt-bank').addEventListener('change', ()=>{ saveOpts(); updateMatch(); });
 $('#btn-reset-stats').addEventListener('click',()=>{ if(confirm('Reset ALL saved progress, flags, and session history?')){ store={byId:{},flagged:[],sessions:[]}; saveStore(); refreshHome(); }});
 $$('#btn-theme').forEach(b=>b.addEventListener('click',()=>{ document.body.classList.toggle('theme-dark');
   const dark=document.body.classList.contains('theme-dark');
@@ -314,7 +318,8 @@ function selectionLabel(){
   const tests=CAT.testOrder.filter(t=>sel.tests.has(t)).map(rw).join('+');
   const topicsAll = QUESTIONS.every(q=> !sel.tests.has(q.t) || sel.topics.has(q.k));
   const dl = sel.diffs.size===3?'':' · '+DIFF_ORDER.filter(d=>sel.diffs.has(d)).join('/');
-  return `${tests}${topicsAll?'':' · '+sel.topics.size+' skills'}${dl}`;
+  const bankLabel=$('#opt-bank').value==='new'?' · New questions':'';
+  return `${tests}${topicsAll?'':' · '+sel.topics.size+' skills'}${dl}${bankLabel}`;
 }
 
 $('#btn-start').addEventListener('click',()=> startSession(matching(), {label:selectionLabel()}) );
@@ -1168,12 +1173,13 @@ document.addEventListener('keydown',e=>{
 const OPTS_KEY='sat_practice_opts_v1';
 function saveOpts(){ try{ localStorage.setItem(OPTS_KEY,JSON.stringify({
   count:$('#opt-count').value, order:$('#opt-order').value,
-  timer:$('#opt-timer').value, seen:$('#opt-seen').value})); }catch(e){} }
+  timer:$('#opt-timer').value, seen:$('#opt-seen').value, bank:$('#opt-bank').value})); }catch(e){} }
 function loadOpts(){ try{ const s=JSON.parse(localStorage.getItem(OPTS_KEY)); if(!s)return;
   if(s.count)$('#opt-count').value=s.count;
   if(s.order)$('#opt-order').value=s.order;
   if(s.timer)$('#opt-timer').value=s.timer;
-  if(s.seen) $('#opt-seen').value=s.seen; }catch(e){} }
+  if(s.seen) $('#opt-seen').value=s.seen;
+  if(s.bank==='all'||s.bank==='new') $('#opt-bank').value=s.bank; }catch(e){} }
 ['opt-count','opt-order','opt-timer'].forEach(id=>document.getElementById(id).addEventListener('change',saveOpts));
 
 /* ============================================================

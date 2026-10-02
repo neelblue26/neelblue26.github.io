@@ -19,6 +19,8 @@ The updater validates question types, stems, options, answers, and explanations
 before writing browser assets. It preserves existing questions and their UUIDs,
 and changes the catalog and shard cache versions so returning users load the new
 questions. Re-running it when there are no additions leaves site files unchanged.
+New questions receive an import-batch marker, which powers the site's
+"New questions only (latest update)" filter.
 Downloads are cached locally in `api-build/cache` for interrupted imports.
 
 Review and commit `apdata`, `bank.html`, and `index.html`, then push to publish.

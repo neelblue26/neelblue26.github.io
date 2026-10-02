@@ -35,6 +35,8 @@ async function main() {
   const indexFile = path.join(root, 'apdata/index.js');
   const existing = readJS(indexFile, 'QIDX');
   const known = new Set(existing.map(q => q.id));
+  const skillKey = (section, domain, skill) => [section, domain, skill.trim().toLowerCase()].join('|');
+  const skills = new Map(existing.map(q => [skillKey(q.t, q.d, q.k), q.k]));
   if (known.size !== existing.length) throw Error('Duplicate existing UUIDs');
   const additions = new Map();
   for (const [section, domains] of [['Math', 'H,P,Q,S'], ['Reading and Writing', 'INI,CAS,EOI,SEC']]) {
@@ -48,7 +50,8 @@ async function main() {
       const difficulty = {E: 'Easy', M: 'Medium', H: 'Hard'}[row.difficulty];
       if (!difficulty || !row.skill_desc || !row.primary_class_cd_desc || !row.questionId) throw Error('Incomplete metadata');
       additions.set(row.external_id, {id: row.external_id, t: section, d: row.primary_class_cd_desc,
-        k: row.skill_desc, df: difficulty, qid: row.questionId});
+        k: skills.get(skillKey(section, row.primary_class_cd_desc, row.skill_desc)) || row.skill_desc.trim(),
+        df: difficulty, qid: row.questionId});
     }
     console.log(section + ': ' + [...additions.values()].filter(q => q.t === section).length + ' new; ' + legacy + ' legacy entries without UUIDs');
   }
@@ -57,6 +60,8 @@ async function main() {
   const cache = path.join(root, 'api-build/cache');
   fs.mkdirSync(cache, {recursive: true});
   const pending = [...additions.values()];
+  const batch = new Date().toISOString();
+  for (const meta of pending) meta.addedBatch = batch;
   let next = 0, finished = 0;
   const results = new Map();
   async function worker() {
