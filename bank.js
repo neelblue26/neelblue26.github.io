@@ -90,7 +90,7 @@ const __shardP = {};
 function loadShard(pfx){
   if(__shardP[pfx]) return __shardP[pfx];
   __shardP[pfx]=new Promise((res)=>{
-    const s=document.createElement('script'); s.src='apdata/q/'+pfx+'.js?v=1';
+    const s=document.createElement('script'); s.src='apdata/q/'+pfx+'.js?v='+(window.QBANK_VERSION||1);
     s.onload=()=>res(); s.onerror=()=>res();   // resolve regardless; caller handles a miss
     document.head.appendChild(s);
   });
