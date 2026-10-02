@@ -28,6 +28,12 @@
         <div id="overall-meter" class="overall-meter"></div>
 
         <div class="card">
+          <h2>Question selection</h2>
+          <input id="opt-bank" type="hidden" value="all" />
+          <div id="f-bank" class="chips" role="group" aria-label="Question selection"></div>
+        </div>
+
+        <div class="card">
           <h2>1 · Section</h2>
           <div id="f-test" class="chips"></div>
         </div>
@@ -53,13 +59,6 @@
         <div class="card">
           <h2>4 · Options</h2>
           <div class="opt-grid">
-            <label class="opt">
-              <span>Question bank</span>
-              <select id="opt-bank">
-                <option value="all" selected>All questions</option>
-                <option value="new">New questions only (latest update)</option>
-              </select>
-            </label>
             <label class="opt">
               <span>Number of questions</span>
               <select id="opt-count">
@@ -287,6 +286,6 @@
 </div>
 
 <script src="apdata/index.js?v=3"></script>
-<script src="bank.js?v=24"></script>
+<script src="bank.js?v=25"></script>
 </body>
 </html>

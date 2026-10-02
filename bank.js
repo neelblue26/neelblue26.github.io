@@ -158,6 +158,20 @@ function qHTML(c){
    HOME / SETUP
    ============================================================ */
 function chipDot(e){ const a=accInfo(e); return a?`<span class="chip-dot ${a.col}" title="${a.pct}% accuracy"></span>`:''; }
+function renderBank(){
+  const box=$('#f-bank'); box.innerHTML='';
+  const newCount=QUESTIONS.filter(q=>LATEST_BATCH && q.addedBatch===LATEST_BATCH).length;
+  for(const [value,label,count] of [['all','All questions',QUESTIONS.length],['new','New questions',newCount]]){
+    const button=document.createElement('button');
+    button.type='button'; button.dataset.bank=value;
+    const selected=$('#opt-bank').value===value;
+    button.className='chip'+(selected?' on':'');
+    button.setAttribute('aria-pressed',String(selected));
+    button.innerHTML=`${label} <span class="c-count">${count.toLocaleString()}</span>`;
+    if(value==='new') button.title='Questions added in the latest bank update';
+    box.appendChild(button);
+  }
+}
 function renderTests(){
   const box=$('#f-test'); box.innerHTML='';
   for(const t of CAT.testOrder){
@@ -299,14 +313,18 @@ $('#f-topics').addEventListener('click',e=>{
   renderTopics(); updateMatch();
 });
 $('#topic-search').addEventListener('input', e=>{ topicSearch=e.target.value; renderTopics(); });
-function refreshHome(){ PROG=computeProgress(); renderOverall(); renderTests(); renderDiffs(); renderTopics(); updateMatch(); renderHomeStats(); }
+function refreshHome(){ PROG=computeProgress(); renderOverall(); renderBank(); renderTests(); renderDiffs(); renderTopics(); updateMatch(); renderHomeStats(); }
 $$('[data-topics]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.topics==='all'){ for(const q of QUESTIONS) if(sel.tests.has(q.t)) sel.topics.add(q.k); }
   else { sel.topics.clear(); }
   renderTopics(); updateMatch();
 }));
 $('#opt-seen').addEventListener('change', ()=>{ saveOpts(); updateMatch(); });
-$('#opt-bank').addEventListener('change', ()=>{ saveOpts(); updateMatch(); });
+$('#f-bank').addEventListener('click', e=>{
+  const button=e.target.closest('[data-bank]'); if(!button) return;
+  $('#opt-bank').value=button.dataset.bank;
+  saveOpts(); renderBank(); updateMatch();
+});
 $('#btn-reset-stats').addEventListener('click',()=>{ if(confirm('Reset ALL saved progress, flags, and session history?')){ store={byId:{},flagged:[],sessions:[]}; saveStore(); refreshHome(); }});
 $$('#btn-theme').forEach(b=>b.addEventListener('click',()=>{ document.body.classList.toggle('theme-dark');
   const dark=document.body.classList.contains('theme-dark');
