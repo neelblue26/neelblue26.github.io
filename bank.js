@@ -57,13 +57,26 @@ for(const q of QUESTIONS) sel.topics.add(q.k);
 
 /* ---------- progress (done/total + accuracy) per skill, section, difficulty ---------- */
 let PROG = null;
+function bankQuestions(){
+  return $('#opt-bank').value==='new'
+    ? QUESTIONS.filter(q=>LATEST_BATCH && q.addedBatch===LATEST_BATCH) : QUESTIONS;
+}
 function computeProgress(){
   const byTopic={}, byTest={}, byDiff={};
+  const empty=()=>({total:0,done:0,a:0,c:0});
   for(const q of QUESTIONS){
+    byTopic[q.k] ||= empty(); byTest[q.t] ||= empty(); byDiff[q.df] ||= empty();
+  }
+  for(const q of bankQuestions()){
     const b=store.byId[q.id];
     const seen = b && (b.a>0 || b.manualSeen);
-    for(const [map,key] of [[byTopic,q.k],[byTest,q.t],[byDiff,q.df]]){
-      const e=map[key]||(map[key]={total:0,done:0,a:0,c:0});
+    // Each selector shows counts under the other selections, so users can
+    // see how many questions choosing that section, skill, or difficulty adds.
+    const entries=[];
+    if(sel.tests.has(q.t)&&sel.diffs.has(q.df)) entries.push(byTopic[q.k]);
+    if(sel.topics.has(q.k)&&sel.diffs.has(q.df)) entries.push(byTest[q.t]);
+    if(sel.tests.has(q.t)&&sel.topics.has(q.k)) entries.push(byDiff[q.df]);
+    for(const e of entries){
       e.total++;
       if(seen){
         e.done++;
@@ -196,11 +209,12 @@ function renderDiffs(){
 }
 let topicSearch='';
 function renderOverall(){
-  let done=0; const total=QUESTIONS.length;
-  for(const q of QUESTIONS){ const b=store.byId[q.id]; if(b&&(b.a>0||b.manualSeen)) done++; }
+  const pool=bankQuestions();
+  let done=0; const total=pool.length;
+  for(const q of pool){ const b=store.byId[q.id]; if(b&&(b.a>0||b.manualSeen)) done++; }
   const pct = total? Math.round(100*done/total):0;
   $('#overall-meter').innerHTML =
-    `<div class="om-top"><span class="om-label">📚 Question bank completed</span>`+
+    `<div class="om-top"><span class="om-label">📚 ${$('#opt-bank').value==='new'?'New questions':'Question bank'} completed</span>`+
     `<span class="om-val">${done.toLocaleString()} / ${total.toLocaleString()} · ${pct}%</span></div>`+
     `<div class="om-bar"><i style="width:${pct}%"></i></div>`;
 }
@@ -242,9 +256,7 @@ function renderTopics(){
   if(!shown) box.innerHTML='<div class="hint" style="padding:16px 6px">No skills match your search.</div>';
 }
 function matching(){
-  const newOnly=$('#opt-bank').value==='new';
-  return QUESTIONS.filter(q=> sel.tests.has(q.t) && sel.topics.has(q.k) && sel.diffs.has(q.df)
-    && (!newOnly || (LATEST_BATCH && q.addedBatch===LATEST_BATCH)));
+  return bankQuestions().filter(q=> sel.tests.has(q.t) && sel.topics.has(q.k) && sel.diffs.has(q.df));
 }
 function updateMatch(){
   const filtered=matching();
@@ -266,8 +278,11 @@ function updateMatch(){
   } else note.classList.add('hidden');
 }
 function renderHomeStats(){
-  let attempted=0, totA=0, totC=0;
-  for(const id in store.byId){ const b=store.byId[id]; if(b.a>0){attempted++; totA+=b.a; totC+=b.c;} }
+  let seen=0, totA=0, totC=0;
+  for(const q of QUESTIONS){ const b=store.byId[q.id]; if(!b) continue;
+    if(b.a>0||b.manualSeen) seen++;
+    if(b.a>0){totA+=b.a; totC+=b.c;}
+  }
   const acc = totA? Math.round(100*totC/totA):0;
 
   const pred=predictFromStore();
@@ -287,7 +302,7 @@ function renderHomeStats(){
   if(lastSes){ const d=Math.floor((Date.now()-lastSes.ts)/864e5);
     lastPracHTML=`<div class="last-prac">Last practiced: ${d===0?'today':d===1?'yesterday':d+' days ago'}</div>`; }
   $('#home-stats').innerHTML=
-    `<div class="stat-box"><div class="num">${attempted}</div><div class="lbl">questions seen</div></div>`+
+    `<div class="stat-box"><div class="num">${seen}</div><div class="lbl">questions seen · all updates</div></div>`+
     `<div class="stat-box"><div class="num">${acc}%</div><div class="lbl">lifetime accuracy</div></div>`+
     predHTML+lastPracHTML;
   $('#flag-num').textContent=store.flagged.length;
@@ -298,32 +313,32 @@ function renderHomeStats(){
 /* home events */
 $('#f-test').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(!c)return;
   const t=c.dataset.test; if(sel.tests.has(t)){ if(sel.tests.size>1) sel.tests.delete(t); } else sel.tests.add(t);
-  renderTests(); renderTopics(); updateMatch(); });
+  refreshHome(); });
 $('#f-diff').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(!c)return;
   const d=c.dataset.diff; if(sel.diffs.has(d)){ if(sel.diffs.size>1) sel.diffs.delete(d); } else sel.diffs.add(d);
-  renderDiffs(); updateMatch(); });
+  refreshHome(); });
 $('#f-topics').addEventListener('click',e=>{
   const title=e.target.closest('.tg-title');
   if(title){ const dom=title.dataset.dom; const T=CAT.tax[ Object.keys(CAT.tax).find(t=>CAT.tax[t].doms[dom]) ];
     const D=T.doms[dom]; const allOn=D.topOrder.every(k=>sel.topics.has(k));
     D.topOrder.forEach(k=> allOn? sel.topics.delete(k) : sel.topics.add(k));
-    renderTopics(); updateMatch(); return; }
+    refreshHome(); return; }
   const it=e.target.closest('.topic-row'); if(!it)return;
   const k=it.dataset.topic; if(sel.topics.has(k)) sel.topics.delete(k); else sel.topics.add(k);
-  renderTopics(); updateMatch();
+  refreshHome();
 });
 $('#topic-search').addEventListener('input', e=>{ topicSearch=e.target.value; renderTopics(); });
 function refreshHome(){ PROG=computeProgress(); renderOverall(); renderBank(); renderTests(); renderDiffs(); renderTopics(); updateMatch(); renderHomeStats(); }
 $$('[data-topics]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.topics==='all'){ for(const q of QUESTIONS) if(sel.tests.has(q.t)) sel.topics.add(q.k); }
   else { sel.topics.clear(); }
-  renderTopics(); updateMatch();
+  refreshHome();
 }));
 $('#opt-seen').addEventListener('change', ()=>{ saveOpts(); updateMatch(); });
 $('#f-bank').addEventListener('click', e=>{
   const button=e.target.closest('[data-bank]'); if(!button) return;
   $('#opt-bank').value=button.dataset.bank;
-  saveOpts(); renderBank(); updateMatch();
+  saveOpts(); refreshHome();
 });
 $('#btn-reset-stats').addEventListener('click',()=>{ if(confirm('Reset ALL saved progress, flags, and session history?')){ store={byId:{},flagged:[],sessions:[]}; saveStore(); refreshHome(); }});
 $$('#btn-theme').forEach(b=>b.addEventListener('click',()=>{ document.body.classList.toggle('theme-dark');

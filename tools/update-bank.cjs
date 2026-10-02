@@ -36,7 +36,11 @@ async function main() {
   const existing = readJS(indexFile, 'QIDX');
   const known = new Set(existing.map(q => q.id));
   const skillKey = (section, domain, skill) => [section, domain, skill.trim().toLowerCase()].join('|');
-  const skills = new Map(existing.map(q => [skillKey(q.t, q.d, q.k), q.k]));
+  const skills = new Map();
+  for (const q of existing) {
+    const key = skillKey(q.t, q.d, q.k);
+    if (!skills.has(key)) skills.set(key, q.k.trim());
+  }
   if (known.size !== existing.length) throw Error('Duplicate existing UUIDs');
   const additions = new Map();
   for (const [section, domains] of [['Math', 'H,P,Q,S'], ['Reading and Writing', 'INI,CAS,EOI,SEC']]) {
